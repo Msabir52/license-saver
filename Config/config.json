@@ -1,8 +1,0 @@
-{
-  "TenantId": "1ad2a9eb-7be3-410e-82e2-a3e576f592ed",
-  "ClientId": "a6553e25-cf51-4c35-9d2b-ff0dd26f08bd",
-  "AuthType": "ClientSecret",
-  "ClientSecretEnvironmentVariable": "TKLICENSING_CLIENT_SECRET",
-  "ReportPeriods": [30, 60, 90],
-  "DefaultInactiveDays": 90
-}
