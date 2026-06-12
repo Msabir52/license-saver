@@ -39,4 +39,8 @@ The process (in detail):
 
 
 2. Get the base functions set for grabbing the data from MS Graph
+2a. formulate the token URL and body 
+2b. ask for a graph token with the above
+2c. query the information
+
 
