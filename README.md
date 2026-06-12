@@ -38,11 +38,5 @@ The process (in detail):
 - created config.json
 
 
-2. Get the base functions for grabbing the data from MS Graph
-2a. Make a get config to read from the Config | Get-TKConfig
-2b. Make a function to create the token request to get info from Graph, with the auth info | Get-TKGraphToken
-2c. Make the function that will actually call MS Graph to ask for the data handle the throttling and paging | Invoke-TKGraphRequest
-2d. First real real function to pull users | Get-TKLicensedUsers
-2e. put together the psm1 which will go through and import all the individual functions, and then use New-ModuleManifest to create the psd1
-2f. create folder structure for the logs, tests, samples, etc as recommended
+2. Get the base functions set for grabbing the data from MS Graph
 
