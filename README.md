@@ -42,5 +42,17 @@ The process (in detail):
 2a. formulate the token URL and body 
 2b. ask for a graph token with the above
 2c. query the information
+2d. take the 302 redir and use it to get the CSV of data
+ISSUE - usage reports seem to not exist for the sandbox tenant, so going to continue forward on just the core requirement of disabled licensed accounts.
+
+3. Licensed Disabled Acounts
+3a. Pull the data from graph of the accounts
+
+4. REPORT GENERATION
+4a. add in param at top to output to .\Output
+4b. helper function
+4c. report made, html export save
+4d. license sku to readable name lookup
+4e. edit report to incorporate readable name
 
 

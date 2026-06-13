@@ -1,7 +1,9 @@
 #licensing.ps1
 
 param (
-    [string]$ConfigPath = ".\Config\config.json"
+    [string]$ConfigPath = ".\Config\config.json",
+    [string]$ReportPath = ".\Output\LicenseReport.html"
+
 )
 
 
@@ -20,6 +22,147 @@ function Write-Log {
 Write-Log "Starting script"
 
 #HELPER FUNCTIONS
+
+
+#REPORT FUNCTION 
+function DisabledUsersHtmlReport {
+
+    #first part of this report, disabled users with licenses
+        #add lookup table
+
+    param (
+        [array]$DisabledUsers,
+        [string]$ReportPath,
+        [hashtable]$SkuLookup
+    )
+
+    Write-Log "Building report"
+
+    $tableRows = ""
+    foreach ($user in $DisabledUsers) {
+
+        #$licenseList = ($user.assignedLicenses | ForEach-Object { $_.skuId }) -join ", "
+        #old simple, now adjusting the sku lookup version
+        $licenseList = ($user.assignedLicenses | ForEach-Object {
+        $skuId = $_.skuId
+        if ($SkuLookup.ContainsKey($skuId)) {
+            $SkuLookup[$skuId]
+        }
+        else {
+            $skuId
+        }
+        }) -join ", "
+
+        $lastSignIn = $user.signInActivity.lastSignInDateTime
+        if (-not $lastSignIn) {
+            $lastSignIn = "No sign-in data returned"
+        }
+        
+        $tableRows += @"
+        <tr>
+            <td>$($user.displayName)</td>
+            <td>$($user.userPrincipalName)</td>
+            <td>$licenseList</td>
+            <td>$lastSignIn</td>
+        </tr>
+"@
+    }
+
+    #the ideal case :)
+    if ($DisabledUsers.Count -eq 0) {
+        $tableRows = @"
+        <tr>
+            <td colspan="4">No disabled users with active licenses were found.</td>
+        </tr>
+"@
+    }
+
+                $html = @"
+        <!doctype html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Microsoft 365 License Report</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 30px;
+                }
+
+                h1 {
+                    margin-bottom: 5px;
+                }
+
+                .summary {
+                    margin: 15px 0;
+                    font-size: 18px;
+                    font-weight: bold;
+                }
+
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                }
+
+                th, td {
+                    border: 1px solid #cccccc;
+                    padding: 8px;
+                    text-align: left;
+                    vertical-align: top;
+                }
+
+                th {
+                    background-color: #eeeeee;
+                }
+
+                tr:nth-child(even) {
+                    background-color: #f7f7f7;
+                }
+
+                .note {
+                    margin-top: 20px;
+                    font-size: 13px;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Microsoft 365 License Report</h1>
+
+            <div class="summary">
+                $($DisabledUsers.Count) disabled users with active licenses found.
+            </div>
+
+            <h2>Disabled Users With Active Licenses</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>UPN</th>
+                        <th>Licenses</th>
+                        <th>Last Sign-In</th>
+                    </tr>
+                </thead>
+                <tbody>
+        $tableRows
+                </tbody>
+            </table>
+
+            <div class="note">
+                Methodology: This section includes users where accountEnabled is false and assignedLicenses has one or more entries.
+            </div>
+        </body>
+        </html>
+"@
+
+            # Save the HTML report.
+            Set-Content -Path $ReportPath -Value $html -Encoding UTF8
+
+            Write-Log "HTML report saved to $ReportPath"
+        }
+
+        
+
 
 #429 ERRORS, ETC
 #next requirement, handle throttling...
@@ -192,6 +335,19 @@ catch {
 $graphHeaders = @{Authorization = "Bearer $accessToken"}
 Write-Log "Graph Header ready"
 
+#addition: readable name licenses
+
+#grab all the skus data from graph
+$subscribedSkusUrl = "https://graph.microsoft.com/v1.0/subscribedSkus"
+$subscribedSkus = Invoke-GraphGet `
+    -Url $subscribedSkusUrl `
+    -Headers $graphHeaders
+
+#lookup table wohoo
+$skuLookup = @{}
+foreach ($sku in $subscribedSkus.value) {
+    $skuLookup[$sku.skuId] = $sku.skuPartNumber
+}
 
 #now query the information
 
@@ -236,6 +392,7 @@ Write-Log "Finished querying"
 Write-Log "$($licensedUsers.Count) Licensed users found in tenant "
 
 #using 30 days as the baseline
+<#
 $activeUserReportUrl = "https://graph.microsoft.com/v1.0/reports/getOffice365ActiveUserDetail(period='D30')"
 
 Write-Log "Pulling 90d active user detail report"
@@ -250,3 +407,18 @@ Write-Log "Office 365 active user detail report columns:"
 $activeUserReport |
     Select-Object -First 1 |
     Format-List
+#>
+
+#TRUCKING ALONG WITH THE FIRST CORE REQUIREMENT - UNLICENSING DISABLED ACCOUNTS
+
+$disabledLicensedUsers = @()
+foreach ($user in $licensedUsers) {
+    if ($user.accountEnabled -eq $false) {
+        $disabledLicensedUsers += $user
+    }
+}
+Write-Log "$($disabledLicensedUsers.Count) disabled users w/ active licenses found"
+DisabledUsersHtmlReport `
+    -DisabledUsers $disabledLicensedUsers `
+    -ReportPath $ReportPath `
+    -SkuLookup $skuLookup
