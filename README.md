@@ -13,7 +13,7 @@ All to save the client money in the long run :)
 The process (high-level):
 -Pull data from Microsoft Graph
 -Analyze the output
--Unlicense inactive users, and make recommendations for underutilized licenses
+-(Look to) Unlicense inactive users, and make recommendations for underutilized licenses
 -Generate a quick neat report of the findings, and how much money was saved over how many licenses
 
 
@@ -57,8 +57,9 @@ ISSUE - usage reports seem to not exist for the sandbox tenant, so going to cont
 
 5. Inactive Users
 5a. Add helper function to map License SKU to name
-5b. add parameter for function so i can pass through any number of days to determine as inactive 
+5b. add parameter for function so i can pass through any number of days to determine as inactive for testing (then set the 30 60 90 default report)
 5c. Create list for inactive users, along with PS Object with (what chat says) are best practice parts like recommendation etc. for the basic purpose this'll just be to manually review but when usage data comes into play this will be helpful for downgrading licenses.
 5d. Replace / Update report function to have both tables. 
 5e. update function calls
+5f. default 30 60 90 reoprt - adjust parameter to be an array and take in the report. Adjust the function to not loop days anymore and just for each user look and see if it meets any threshold
 

@@ -3,7 +3,7 @@
 param (
     [string]$ConfigPath = ".\Config\config.json",
     [string]$ReportPath = ".\Output\LicenseReport.html",
-    [int]$InactiveDays = 60
+    [int[]]$InactiveDays = @(30, 60, 90)
 
 
 )
@@ -56,7 +56,7 @@ function LicenseHtmlReport {
         [array]$InactiveUsers,
         [string]$ReportPath,
         [hashtable]$SkuLookup,
-        [int]$InactiveDays
+        [int[]]$InactiveDays
     )
 
     Write-Log "Building report"
@@ -103,6 +103,7 @@ function LicenseHtmlReport {
 
         $inactiveRows += @"
         <tr>
+            <td>$($user.ThresholdDays)+ days</td>
             <td>$($user.DisplayName)</td>
             <td>$($user.UserPrincipalName)</td>
             <td>$($user.Licenses)</td>
@@ -118,8 +119,7 @@ function LicenseHtmlReport {
     if ($InactiveUsers.Count -eq 0) {
         $inactiveRows = @"
         <tr>
-            <td colspan="7">No active licensed users inactive for $InactiveDays or more days were found.</td>
-        </tr>
+        <td colspan="8">No active licensed users inactive for these thresholds were found: $($InactiveDays -join ', ') days.</td>        </tr>
 "@
     }
 
@@ -184,8 +184,8 @@ function LicenseHtmlReport {
 
     <div class="summary-box">
         <div class="summary">$($DisabledUsers.Count) disabled users with active licenses found.</div>
-        <div class="summary">$($InactiveUsers.Count) active licensed users inactive for $InactiveDays or more days found.</div>
-    </div>
+        <div class="summary">$($InactiveUsers.Count) inactive-user findings across thresholds: $($InactiveDays -join ', ') days.</div>
+   </div>
 
     <h2>Disabled Users With Active Licenses</h2>
 
@@ -210,6 +210,7 @@ $disabledRows
     <table>
         <thead>
             <tr>
+                <th>Threshold</th>
                 <th>Name</th>
                 <th>UPN</th>
                 <th>Licenses</th>
@@ -496,55 +497,74 @@ foreach ($user in $licensedUsers) {
 # CORE REQUIREMENT 2 (#5 in readme tho) - ACTIVE LICENSED USERS WITH NO SIGN-IN IN X DAYS
 
 $inactiveLicensedUsers = @()
-$inactiveCutoffDate = (Get-Date).AddDays(-$InactiveDays)
+#no longer only passing one number and now its an array so this is unneeded and doesnt work
+#$inactiveCutoffDate = (Get-Date).AddDays(-$InactiveDays)
 
-Write-Log "Checking for active licensed users inactive for $InactiveDays or more days"
-Write-Log "Inactive cutoff date: $inactiveCutoffDate"
+# Sort thresholds from biggest to smallest.
+# This lets us label a 100-day inactive user as 90+ instead of 30+.
+$sortedInactiveDays = $InactiveDays | Sort-Object -Descending
 
-foreach ($user in $licensedUsers) {
-    #skip disabled users
-    if ($user.accountEnabled -eq $false) {
-        continue
-    }
+Write-Log "Checking inactive users for thresholds: $($InactiveDays -join ', ') days"
 
-    $lastSignInRaw = $user.signInActivity.lastSignInDateTime
-    $licenseList = Get-ReadableLicenseList `
-        -AssignedLicenses $user.assignedLicenses `
-        -SkuLookup $skuLookup
-    if (-not $lastSignInRaw) {
-        $inactiveUser = [PSCustomObject]@{
-            DisplayName       = $user.displayName
-            UserPrincipalName = $user.userPrincipalName
-            Licenses          = $licenseList
-            LastSignIn        = "No sign-in data returned"
-            DaysInactive      = "Unknown"
-            Evidence          = "Microsoft Graph did not return a last sign-in date."
-            Recommendation    = "Review account manually and consider reclaiming license if unused."
+        foreach ($user in $licensedUsers) {
+            #skip disabled users
+            if ($user.accountEnabled -eq $false) {
+                continue
+            }
+
+            $lastSignInRaw = $user.signInActivity.lastSignInDateTime
+            $licenseList = Get-ReadableLicenseList `
+                -AssignedLicenses $user.assignedLicenses `
+                -SkuLookup $skuLookup
+
+            if (-not $lastSignInRaw) {
+                $inactiveUser = [PSCustomObject]@{
+                    ThresholdDays     = $days
+                    DisplayName       = $user.displayName
+                    UserPrincipalName = $user.userPrincipalName
+                    Licenses          = $licenseList
+                    LastSignIn        = "No sign-in data returned"
+                    DaysInactive      = "Unknown"
+                    Evidence          = "Microsoft Graph did not return a last sign-in date."
+                    Recommendation    = "Review account manually and consider reclaiming license if unused."
+                }
+
+                $inactiveLicensedUsers += $inactiveUser
+                continue
+            }
+
+
+            $lastSignInDate = [datetime]$lastSignInRaw
+            $daysInactive = ((Get-Date) - $lastSignInDate).Days
+
+            $matchedThreshold = $null
+
+        foreach ($days in $sortedInactiveDays) {
+            if ($daysInactive -ge $days) {
+                $matchedThreshold = $days
+                break
+            }
         }
 
-        $inactiveLicensedUsers += $inactiveUser
-        continue
-    }
+        if ($matchedThreshold) {
 
-    $lastSignInDate = [datetime]$lastSignInRaw
-    if ($lastSignInDate -lt $inactiveCutoffDate) {
-        $daysInactive = ((Get-Date) - $lastSignInDate).Days
-        $inactiveUser = [PSCustomObject]@{
-            DisplayName       = $user.displayName
-            UserPrincipalName = $user.userPrincipalName
-            Licenses          = $licenseList
-            LastSignIn        = $lastSignInDate
-            DaysInactive      = $daysInactive
-            Evidence          = "No sign-in data available for this user."
-            Recommendation    = "Review account manually and consider reclaiming license if unused."
+            $inactiveUser = [PSCustomObject]@{
+                ThresholdDays     = $matchedThreshold
+                DisplayName       = $user.displayName
+                UserPrincipalName = $user.userPrincipalName
+                Licenses          = $licenseList
+                LastSignIn        = $lastSignInDate
+                DaysInactive      = $daysInactive
+                Evidence          = "Last sign-in was $daysInactive days ago."
+                Recommendation    = "Review account manually and consider reclaiming license if unused."
+            }
+
+            $inactiveLicensedUsers += $inactiveUser
         }
-
-        $inactiveLicensedUsers += $inactiveUser
     }
-}
 
-Write-Log "$($inactiveLicensedUsers.Count) active licensed users inactive for $InactiveDays or more days found"
 
+Write-Log "$($inactiveLicensedUsers.Count) inactive licensed users found across thresholds: $($InactiveDays -join ', ') days"
 Write-Log "$($disabledLicensedUsers.Count) disabled users w/ active licenses found"
 LicenseHtmlReport `
     -DisabledUsers $disabledLicensedUsers `
