@@ -55,4 +55,10 @@ ISSUE - usage reports seem to not exist for the sandbox tenant, so going to cont
 4d. license sku to readable name lookup
 4e. edit report to incorporate readable name
 
+5. Inactive Users
+5a. Add helper function to map License SKU to name
+5b. add parameter for function so i can pass through any number of days to determine as inactive 
+5c. Create list for inactive users, along with PS Object with (what chat says) are best practice parts like recommendation etc. for the basic purpose this'll just be to manually review but when usage data comes into play this will be helpful for downgrading licenses.
+5d. Replace / Update report function to have both tables. 
+5e. update function calls
 

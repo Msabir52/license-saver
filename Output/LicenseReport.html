@@ -1,85 +1,218 @@
-        <!doctype html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <title>Microsoft 365 License Report</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 30px;
-                }
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Microsoft 365 License Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
 
-                h1 {
-                    margin-bottom: 5px;
-                }
+        h1 {
+            margin-bottom: 5px;
+        }
 
-                .summary {
-                    margin: 15px 0;
-                    font-size: 18px;
-                    font-weight: bold;
-                }
+        .summary {
+            margin: 15px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
 
-                table {
-                    border-collapse: collapse;
-                    width: 100%;
-                }
+        .summary-box {
+            border: 1px solid #cccccc;
+            background-color: #f7f7f7;
+            padding: 12px;
+            margin-bottom: 25px;
+        }
 
-                th, td {
-                    border: 1px solid #cccccc;
-                    padding: 8px;
-                    text-align: left;
-                    vertical-align: top;
-                }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 30px;
+        }
 
-                th {
-                    background-color: #eeeeee;
-                }
+        th, td {
+            border: 1px solid #cccccc;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
 
-                tr:nth-child(even) {
-                    background-color: #f7f7f7;
-                }
+        th {
+            background-color: #eeeeee;
+        }
 
-                .note {
-                    margin-top: 20px;
-                    font-size: 13px;
-                }
-            </style>
-        </head>
-        <body>
-            <h1>Microsoft 365 License Report</h1>
+        tr:nth-child(even) {
+            background-color: #f7f7f7;
+        }
 
-            <div class="summary">
-                2 disabled users with active licenses found.
-            </div>
+        .note {
+            margin-top: 20px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Microsoft 365 License Report</h1>
 
-            <h2>Disabled Users With Active Licenses</h2>
+    <div class="summary-box">
+        <div class="summary">2 disabled users with active licenses found.</div>
+        <div class="summary">12 active licensed users inactive for 8 or more days found.</div>
+    </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>UPN</th>
-                        <th>Licenses</th>
-                        <th>Last Sign-In</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <tr>
+    <h2>Disabled Users With Active Licenses</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>UPN</th>
+                <th>Licenses</th>
+                <th>Last Sign-In</th>
+                <th>Evidence</th>
+                <th>Recommendation</th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr>
             <td>Lidia Holloway</td>
             <td>LidiaH@rfgd4w.onmicrosoft.com</td>
             <td>DEVELOPERPACK_V2_E5</td>
             <td>05/12/2026 03:48:09</td>
+            <td>Account is disabled but still has an assigned license.</td>
+            <td>Review and consider reclaiming license.</td>
         </tr>        <tr>
             <td>Lynne Robbins</td>
             <td>LynneR@rfgd4w.onmicrosoft.com</td>
             <td>DEVELOPERPACK_V2_E5</td>
             <td>05/12/2026 03:48:14</td>
+            <td>Account is disabled but still has an assigned license.</td>
+            <td>Review and consider reclaiming license.</td>
         </tr>
-                </tbody>
-            </table>
+        </tbody>
+    </table>
 
-            <div class="note">
-                Methodology: This section includes users where accountEnabled is false and assignedLicenses has one or more entries.
-            </div>
-        </body>
-        </html>
+    <h2>Inactive Licensed Users</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>UPN</th>
+                <th>Licenses</th>
+                <th>Last Sign-In</th>
+                <th>Days Inactive</th>
+                <th>Evidence</th>
+                <th>Recommendation</th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Adele Vance</td>
+            <td>AdeleV@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:47:31</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>        <tr>
+            <td>Diego Siciliani</td>
+            <td>DiegoS@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:47:42</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>        <tr>
+            <td>Grady Archie</td>
+            <td>GradyA@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:47:47</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>        <tr>
+            <td>Henrietta Mueller</td>
+            <td>HenriettaM@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:47:51</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>        <tr>
+            <td>Isaiah Langer</td>
+            <td>IsaiahL@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:47:56</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>        <tr>
+            <td>Johanna Lorenz</td>
+            <td>JohannaL@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:48:00</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>        <tr>
+            <td>Joni Sherman</td>
+            <td>JoniS@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:48:04</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>        <tr>
+            <td>Megan Bowen</td>
+            <td>MeganB@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:48:18</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>        <tr>
+            <td>Miriam Graham</td>
+            <td>MiriamG@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:47:20</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>        <tr>
+            <td>Nestor Wilke</td>
+            <td>NestorW@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:47:25</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>        <tr>
+            <td>Patti Fernandez</td>
+            <td>PattiF@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:47:09</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>        <tr>
+            <td>Pradeep Gupta</td>
+            <td>PradeepG@rfgd4w.onmicrosoft.com</td>
+            <td>DEVELOPERPACK_V2_E5</td>
+            <td>05/12/2026 03:48:22</td>
+            <td>40</td>
+            <td>No sign-in data available for this user.</td>
+            <td>Review account manually and consider reclaiming license if unused.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="note">
+        <strong>Methodology:</strong>
+        Disabled licensed users are users where accountEnabled is false and assignedLicenses has one or more entries.
+        Inactive licensed users are enabled licensed users where the last sign-in date is older than 8 days.
+        Users with no sign-in data returned by Microsoft Graph are included for manual review.
+    </div>
+</body>
+</html>

@@ -2,7 +2,9 @@
 
 param (
     [string]$ConfigPath = ".\Config\config.json",
-    [string]$ReportPath = ".\Output\LicenseReport.html"
+    [string]$ReportPath = ".\Output\LicenseReport.html",
+    [int]$InactiveDays = 60
+
 
 )
 
@@ -24,145 +26,218 @@ Write-Log "Starting script"
 #HELPER FUNCTIONS
 
 
-#REPORT FUNCTION 
-function DisabledUsersHtmlReport {
+#LICENSE HELPER FUNCTION (since its gonna be needed multiple times now...)
+function Get-ReadableLicenseList {
+    param (
+        [array]$AssignedLicenses,
+        [hashtable]$SkuLookup
+    )
+    $licenseNames = @()
+    foreach ($license in $AssignedLicenses) {
+        $skuId = $license.skuId
 
-    #first part of this report, disabled users with licenses
-        #add lookup table
+        if ($SkuLookup.ContainsKey($skuId)) {
+            $licenseNames += $SkuLookup[$skuId]
+        }
+        else {
+            $licenseNames += $skuId
+        }
+    }
+
+    return ($licenseNames -join ", ")
+}
+
+#REPORT FUNCTION 
+#REPORT FUNCTION 
+function LicenseHtmlReport {
 
     param (
         [array]$DisabledUsers,
+        [array]$InactiveUsers,
         [string]$ReportPath,
-        [hashtable]$SkuLookup
+        [hashtable]$SkuLookup,
+        [int]$InactiveDays
     )
 
     Write-Log "Building report"
 
-    $tableRows = ""
+    # DISABLED USERS TABLE ROWS
+    $disabledRows = ""
+
     foreach ($user in $DisabledUsers) {
 
-        #$licenseList = ($user.assignedLicenses | ForEach-Object { $_.skuId }) -join ", "
-        #old simple, now adjusting the sku lookup version
-        $licenseList = ($user.assignedLicenses | ForEach-Object {
-        $skuId = $_.skuId
-        if ($SkuLookup.ContainsKey($skuId)) {
-            $SkuLookup[$skuId]
-        }
-        else {
-            $skuId
-        }
-        }) -join ", "
+        $licenseList = Get-ReadableLicenseList `
+            -AssignedLicenses $user.assignedLicenses `
+            -SkuLookup $SkuLookup
 
         $lastSignIn = $user.signInActivity.lastSignInDateTime
+
         if (-not $lastSignIn) {
             $lastSignIn = "No sign-in data returned"
         }
-        
-        $tableRows += @"
+
+        $disabledRows += @"
         <tr>
             <td>$($user.displayName)</td>
             <td>$($user.userPrincipalName)</td>
             <td>$licenseList</td>
             <td>$lastSignIn</td>
+            <td>Account is disabled but still has an assigned license.</td>
+            <td>Review and consider reclaiming license.</td>
         </tr>
 "@
     }
 
-    #the ideal case :)
     if ($DisabledUsers.Count -eq 0) {
-        $tableRows = @"
+        $disabledRows = @"
         <tr>
-            <td colspan="4">No disabled users with active licenses were found.</td>
+            <td colspan="6">No disabled users with active licenses were found.</td>
         </tr>
 "@
     }
 
-                $html = @"
-        <!doctype html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <title>Microsoft 365 License Report</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 30px;
-                }
+    # INACTIVE USERS TABLE ROWS
+    $inactiveRows = ""
 
-                h1 {
-                    margin-bottom: 5px;
-                }
+    foreach ($user in $InactiveUsers) {
 
-                .summary {
-                    margin: 15px 0;
-                    font-size: 18px;
-                    font-weight: bold;
-                }
-
-                table {
-                    border-collapse: collapse;
-                    width: 100%;
-                }
-
-                th, td {
-                    border: 1px solid #cccccc;
-                    padding: 8px;
-                    text-align: left;
-                    vertical-align: top;
-                }
-
-                th {
-                    background-color: #eeeeee;
-                }
-
-                tr:nth-child(even) {
-                    background-color: #f7f7f7;
-                }
-
-                .note {
-                    margin-top: 20px;
-                    font-size: 13px;
-                }
-            </style>
-        </head>
-        <body>
-            <h1>Microsoft 365 License Report</h1>
-
-            <div class="summary">
-                $($DisabledUsers.Count) disabled users with active licenses found.
-            </div>
-
-            <h2>Disabled Users With Active Licenses</h2>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>UPN</th>
-                        <th>Licenses</th>
-                        <th>Last Sign-In</th>
-                    </tr>
-                </thead>
-                <tbody>
-        $tableRows
-                </tbody>
-            </table>
-
-            <div class="note">
-                Methodology: This section includes users where accountEnabled is false and assignedLicenses has one or more entries.
-            </div>
-        </body>
-        </html>
+        $inactiveRows += @"
+        <tr>
+            <td>$($user.DisplayName)</td>
+            <td>$($user.UserPrincipalName)</td>
+            <td>$($user.Licenses)</td>
+            <td>$($user.LastSignIn)</td>
+            <td>$($user.DaysInactive)</td>
+            <td>$($user.Evidence)</td>
+            <td>$($user.Recommendation)</td>
+        </tr>
 "@
+    }
 
-            # Save the HTML report.
-            Set-Content -Path $ReportPath -Value $html -Encoding UTF8
+    #ideal case :)
+    if ($InactiveUsers.Count -eq 0) {
+        $inactiveRows = @"
+        <tr>
+            <td colspan="7">No active licensed users inactive for $InactiveDays or more days were found.</td>
+        </tr>
+"@
+    }
 
-            Write-Log "HTML report saved to $ReportPath"
+    $html = @"
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Microsoft 365 License Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
         }
 
-        
+        h1 {
+            margin-bottom: 5px;
+        }
 
+        .summary {
+            margin: 15px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .summary-box {
+            border: 1px solid #cccccc;
+            background-color: #f7f7f7;
+            padding: 12px;
+            margin-bottom: 25px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            border: 1px solid #cccccc;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #eeeeee;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f7f7f7;
+        }
+
+        .note {
+            margin-top: 20px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Microsoft 365 License Report</h1>
+
+    <div class="summary-box">
+        <div class="summary">$($DisabledUsers.Count) disabled users with active licenses found.</div>
+        <div class="summary">$($InactiveUsers.Count) active licensed users inactive for $InactiveDays or more days found.</div>
+    </div>
+
+    <h2>Disabled Users With Active Licenses</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>UPN</th>
+                <th>Licenses</th>
+                <th>Last Sign-In</th>
+                <th>Evidence</th>
+                <th>Recommendation</th>
+            </tr>
+        </thead>
+        <tbody>
+$disabledRows
+        </tbody>
+    </table>
+
+    <h2>Inactive Licensed Users</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>UPN</th>
+                <th>Licenses</th>
+                <th>Last Sign-In</th>
+                <th>Days Inactive</th>
+                <th>Evidence</th>
+                <th>Recommendation</th>
+            </tr>
+        </thead>
+        <tbody>
+$inactiveRows
+        </tbody>
+    </table>
+
+    <div class="note">
+        <strong>Methodology:</strong>
+        Disabled licensed users are users where accountEnabled is false and assignedLicenses has one or more entries.
+        Inactive licensed users are enabled licensed users where the last sign-in date is older than $InactiveDays days.
+        Users with no sign-in data returned by Microsoft Graph are included for manual review.
+    </div>
+</body>
+</html>
+"@
+
+    Set-Content -Path $ReportPath -Value $html -Encoding UTF8
+
+    Write-Log "HTML report saved to $ReportPath"
+}
 
 #429 ERRORS, ETC
 #next requirement, handle throttling...
@@ -417,8 +492,63 @@ foreach ($user in $licensedUsers) {
         $disabledLicensedUsers += $user
     }
 }
+
+# CORE REQUIREMENT 2 (#5 in readme tho) - ACTIVE LICENSED USERS WITH NO SIGN-IN IN X DAYS
+
+$inactiveLicensedUsers = @()
+$inactiveCutoffDate = (Get-Date).AddDays(-$InactiveDays)
+
+Write-Log "Checking for active licensed users inactive for $InactiveDays or more days"
+Write-Log "Inactive cutoff date: $inactiveCutoffDate"
+
+foreach ($user in $licensedUsers) {
+    #skip disabled users
+    if ($user.accountEnabled -eq $false) {
+        continue
+    }
+
+    $lastSignInRaw = $user.signInActivity.lastSignInDateTime
+    $licenseList = Get-ReadableLicenseList `
+        -AssignedLicenses $user.assignedLicenses `
+        -SkuLookup $skuLookup
+    if (-not $lastSignInRaw) {
+        $inactiveUser = [PSCustomObject]@{
+            DisplayName       = $user.displayName
+            UserPrincipalName = $user.userPrincipalName
+            Licenses          = $licenseList
+            LastSignIn        = "No sign-in data returned"
+            DaysInactive      = "Unknown"
+            Evidence          = "Microsoft Graph did not return a last sign-in date."
+            Recommendation    = "Review account manually and consider reclaiming license if unused."
+        }
+
+        $inactiveLicensedUsers += $inactiveUser
+        continue
+    }
+
+    $lastSignInDate = [datetime]$lastSignInRaw
+    if ($lastSignInDate -lt $inactiveCutoffDate) {
+        $daysInactive = ((Get-Date) - $lastSignInDate).Days
+        $inactiveUser = [PSCustomObject]@{
+            DisplayName       = $user.displayName
+            UserPrincipalName = $user.userPrincipalName
+            Licenses          = $licenseList
+            LastSignIn        = $lastSignInDate
+            DaysInactive      = $daysInactive
+            Evidence          = "No sign-in data available for this user."
+            Recommendation    = "Review account manually and consider reclaiming license if unused."
+        }
+
+        $inactiveLicensedUsers += $inactiveUser
+    }
+}
+
+Write-Log "$($inactiveLicensedUsers.Count) active licensed users inactive for $InactiveDays or more days found"
+
 Write-Log "$($disabledLicensedUsers.Count) disabled users w/ active licenses found"
-DisabledUsersHtmlReport `
+LicenseHtmlReport `
     -DisabledUsers $disabledLicensedUsers `
+    -InactiveUsers $inactiveLicensedUsers `
     -ReportPath $ReportPath `
-    -SkuLookup $skuLookup
+    -SkuLookup $skuLookup `
+    -InactiveDays $InactiveDays
