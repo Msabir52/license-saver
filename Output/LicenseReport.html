@@ -59,7 +59,9 @@
     <div class="summary-box">
         <div class="summary">2 disabled users with active licenses found.</div>
         <div class="summary">12 inactive-user findings across thresholds: 30, 60, 90 days.</div>
-<div class="summary">9 unassigned license seats found across 1 SKU(s).</div>   </div>
+        <div class="summary">9 unassigned license seats found across 1 SKU(s).</div>   </div>
+        <div class="summary">Projected unassigned-license waste: $9 monthly / $108 annually.</div>
+    </div>
 
     <h2>Disabled Users With Active Licenses</h2>
 
@@ -232,13 +234,16 @@
 
     <table>
         <thead>
-            <tr>
-                <th>Sku Part Number</th>
-                <th>Total Enabled</th>
-                <th>Assigned</th>
-                <th>Available</th>
-                <th>Evidence</th>
-            </tr>
+        <tr>
+            <th>Sku Part Number</th>
+            <th>Total Enabled</th>
+            <th>Assigned</th>
+            <th>Available</th>
+            <th>Monthly Price</th>
+            <th>Projected Monthly Waste</th>
+            <th>Projected Annual Waste</th>
+            <th>Evidence</th>
+        </tr>
         </thead>
         <tbody>
         <tr>
@@ -246,7 +251,10 @@
             <td>25</td>
             <td>16</td>
             <td>9</td>
-            <td>9 of 25 enabled seats are not assigned.</td>
+            <td>$1</td>
+            <td>$9</td>
+            <td>$108</td>
+            <td>9 of 25 enabled seats are not assigned. Price loaded from configurable SKU price file.</td>
         </tr>
         </tbody>
     </table>

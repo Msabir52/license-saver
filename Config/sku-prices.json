@@ -1,0 +1,80 @@
+{
+  "DEVELOPERPACK_V2_E5": {
+    "DisplayName": "Microsoft 365 Dev Tenant Test",
+    "MonthlyPrice": 1.00,
+    "BillingBasis": "For testing only -- no charge",
+    "Notes": "Common Graph skuPartNumber for Microsoft 365 Business Basic."
+  },
+  "O365_BUSINESS_ESSENTIALS": {
+    "DisplayName": "Microsoft 365 Business Basic",
+    "MonthlyPrice": 6.00,
+    "BillingBasis": "Public Microsoft list price, annual subscription, paid yearly",
+    "Notes": "Common Graph skuPartNumber for Microsoft 365 Business Basic."
+  },
+  "SMB_BUSINESS_ESSENTIALS": {
+    "DisplayName": "Microsoft 365 Business Basic",
+    "MonthlyPrice": 6.00,
+    "BillingBasis": "Public Microsoft list price, annual subscription, paid yearly",
+    "Notes": "Alternate/legacy Graph skuPartNumber seen in some tenants."
+  },
+  "O365_BUSINESS_PREMIUM": {
+    "DisplayName": "Microsoft 365 Business Standard",
+    "MonthlyPrice": 12.50,
+    "BillingBasis": "Public Microsoft list price, annual subscription, paid yearly",
+    "Notes": "Despite the SKU name saying PREMIUM, Microsoft maps this skuPartNumber to Business Standard."
+  },
+  "SMB_BUSINESS_PREMIUM": {
+    "DisplayName": "Microsoft 365 Business Standard",
+    "MonthlyPrice": 12.50,
+    "BillingBasis": "Public Microsoft list price, annual subscription, paid yearly",
+    "Notes": "Alternate/legacy Graph skuPartNumber seen in some tenants."
+  },
+  "SPB": {
+    "DisplayName": "Microsoft 365 Business Premium",
+    "MonthlyPrice": 22.00,
+    "BillingBasis": "Public Microsoft list price, annual subscription, paid yearly",
+    "Notes": "Common Graph skuPartNumber for Microsoft 365 Business Premium."
+  },
+  "SMB_BUSINESS": {
+    "DisplayName": "Microsoft 365 Apps for business",
+    "MonthlyPrice": 8.25,
+    "BillingBasis": "Public Microsoft list price, annual subscription, paid yearly",
+    "Notes": "Desktop Office apps and OneDrive; does not include Exchange mailbox."
+  },
+  "EXCHANGESTANDARD": {
+    "DisplayName": "Exchange Online Plan 1",
+    "MonthlyPrice": 4.00,
+    "BillingBasis": "Public Microsoft list price, annual subscription, paid yearly",
+    "Notes": "Hosted Exchange mailbox plan."
+  },
+  "EXCHANGE_S_STANDARD": {
+    "DisplayName": "Exchange Online Plan 1",
+    "MonthlyPrice": 4.00,
+    "BillingBasis": "Public Microsoft list price, annual subscription, paid yearly",
+    "Notes": "Alternate Exchange Online Plan 1 skuPartNumber sometimes seen in references/tenants."
+  },
+  "ENTERPRISEPACK": {
+    "DisplayName": "Office 365 E3",
+    "MonthlyPrice": 23.00,
+    "BillingBasis": "Public Microsoft list price before July 2026 pricing update",
+    "Notes": "Office 365 E3. Microsoft has announced this changes to $26 effective July 1, 2026 for suites with Teams."
+  },
+  "ENTERPRISEPREMIUM": {
+    "DisplayName": "Office 365 E5",
+    "MonthlyPrice": 38.00,
+    "BillingBasis": "Public Microsoft list price before July 2026 pricing update",
+    "Notes": "Office 365 E5. Microsoft has announced this changes to $41 effective July 1, 2026 for suites with Teams."
+  },
+  "SPE_E3": {
+    "DisplayName": "Microsoft 365 E3",
+    "MonthlyPrice": 36.00,
+    "BillingBasis": "Public Microsoft list price, annual commitment",
+    "Notes": "Microsoft has announced this changes to $39 effective July 1, 2026 for suites with Teams."
+  },
+  "SPE_E5": {
+    "DisplayName": "Microsoft 365 E5",
+    "MonthlyPrice": 57.00,
+    "BillingBasis": "Public Microsoft list price, annual commitment",
+    "Notes": "Microsoft has announced this changes to $60 effective July 1, 2026 for suites with Teams."
+  }
+}

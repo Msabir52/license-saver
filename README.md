@@ -70,3 +70,9 @@ ISSUE - usage reports seem to not exist for the sandbox tenant, so going to cont
 6d. Update summary / license calculation
 6e. Update final report call 
 
+7. Configurable per SKU Pricing / Savings Calculation
+7a. Add sku-prices.json within Config - add parameter PricePath
+7b. Use skuPartNumber to reference the "friendly" name - each SKU has a name, monthly price, billing basis, and notes (auto generated)
+7c. Helper function Get-SkuPriceLookup to check if price file exists, if it does convert the json to a ps hashtable, and then that will allow the lookup
+7d. Match Tenant SKUs, and calculate savings
+7e. Add to Report Data / add to HTML Report

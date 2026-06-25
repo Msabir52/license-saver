@@ -2,8 +2,10 @@
 
 param (
     [string]$ConfigPath = ".\Config\config.json",
+    [string]$PricePath = ".\Config\sku-prices.json",
     [string]$ReportPath = ".\Output\LicenseReport.html",
     [int[]]$InactiveDays = @(30, 60, 90)
+
 
 
 )
@@ -47,7 +49,44 @@ function Get-ReadableLicenseList {
     return ($licenseNames -join ", ")
 }
 
-#REPORT FUNCTION 
+#CONFIGURABLE SKU PRICING LOOKUP
+function Get-SkuPriceLookup {
+    param (
+        [string]$PricePath
+    )
+
+    $priceLookup = @{}
+
+    if (-not (Test-Path $PricePath)) {
+        Write-Log "Price file not found: $PricePath" "WARN"
+        Write-Log "Savings calculations will show as unknown." "WARN"
+        return $priceLookup
+    }
+
+    try {
+        $priceConfig = Get-Content $PricePath -Raw | ConvertFrom-Json
+    }
+    catch {
+        Write-Log "Could not read price file: $PricePath" "ERROR"
+        Write-Log "Check that the JSON is valid." "ERROR"
+        exit
+    }
+
+    foreach ($property in $priceConfig.PSObject.Properties) {
+        $skuPartNumber = $property.Name
+        $priceInfo = $property.Value
+
+        $priceLookup[$skuPartNumber] = [PSCustomObject]@{
+            DisplayName  = $priceInfo.DisplayName
+            MonthlyPrice = [decimal]$priceInfo.MonthlyPrice
+        }
+    }
+
+    Write-Log "$($priceLookup.Count) SKU prices loaded from $PricePath"
+
+    return $priceLookup
+}
+
 #REPORT FUNCTION 
 function LicenseHtmlReport {
 
@@ -128,12 +167,32 @@ function LicenseHtmlReport {
 $unassignedRows = ""
 
 foreach ($license in $UnassignedLicenses) {
+
+    $monthlyPrice = "Unknown"
+    $monthlyWaste = "Unknown"
+    $annualWaste = "Unknown"
+
+    if ($null -ne $license.MonthlyPrice) {
+        $monthlyPrice = '$' + $license.MonthlyPrice
+    }
+
+    if ($null -ne $license.MonthlyWaste) {
+        $monthlyWaste = '$' + $license.MonthlyWaste
+    }
+
+    if ($null -ne $license.AnnualWaste) {
+        $annualWaste = '$' + $license.AnnualWaste
+    }
+
     $unassignedRows += @"
         <tr>
             <td>$($license.SkuPartNumber)</td>
             <td>$($license.TotalEnabled)</td>
             <td>$($license.Assigned)</td>
             <td>$($license.Available)</td>
+            <td>$monthlyPrice</td>
+            <td>$monthlyWaste</td>
+            <td>$annualWaste</td>
             <td>$($license.Evidence)</td>
         </tr>
 "@
@@ -142,7 +201,7 @@ foreach ($license in $UnassignedLicenses) {
 if ($UnassignedLicenses.Count -eq 0) {
     $unassignedRows = @"
         <tr>
-            <td colspan="5">No unassigned licenses were found.</td>
+            <td colspan="8">No unassigned licenses were found.</td>
         </tr>
 "@
 }
@@ -215,7 +274,9 @@ foreach ($license in $UnassignedLicenses) {
     <div class="summary-box">
         <div class="summary">$($DisabledUsers.Count) disabled users with active licenses found.</div>
         <div class="summary">$($InactiveUsers.Count) inactive-user findings across thresholds: $($InactiveDays -join ', ') days.</div>
-<div class="summary">$totalUnassignedSeats unassigned license seats found across $($UnassignedLicenses.Count) SKU(s).</div>   </div>
+        <div class="summary">$totalUnassignedSeats unassigned license seats found across $($UnassignedLicenses.Count) SKU(s).</div>   </div>
+        <div class="summary">Projected unassigned-license waste: $totalMonthlyWasteText monthly / $totalAnnualWasteText annually.</div>
+    </div>
 
     <h2>Disabled Users With Active Licenses</h2>
 
@@ -266,13 +327,16 @@ $inactiveRows
 
     <table>
         <thead>
-            <tr>
-                <th>Sku Part Number</th>
-                <th>Total Enabled</th>
-                <th>Assigned</th>
-                <th>Available</th>
-                <th>Evidence</th>
-            </tr>
+        <tr>
+            <th>Sku Part Number</th>
+            <th>Total Enabled</th>
+            <th>Assigned</th>
+            <th>Available</th>
+            <th>Monthly Price</th>
+            <th>Projected Monthly Waste</th>
+            <th>Projected Annual Waste</th>
+            <th>Evidence</th>
+        </tr>
         </thead>
         <tbody>
 $unassignedRows
@@ -417,6 +481,8 @@ if (-not $secretEnvVarName) {
 
 Write-Log "Config loaded"
 
+$skuPriceLookup = Get-SkuPriceLookup -PricePath $PricePath
+
 #read the client secret from the env var for our specific app
 $clientSecret = [Environment]::GetEnvironmentVariable($secretEnvVarName, "Process")
 if (-not $clientSecret) {
@@ -476,18 +542,35 @@ foreach ($sku in $subscribedSkus.value) {
 $unassignedLicenses = @()
 
 foreach ($sku in $subscribedSkus.value) {
+    $skuPartNumber = $sku.skuPartNumber
     $totalEnabled = $sku.prepaidUnits.enabled
     $assigned = $sku.consumedUnits
     $available = $totalEnabled - $assigned
 
+    $monthlyPrice = $null
+    $monthlyWaste = $null
+    $annualWaste = $null
+    $priceEvidence = "No price found in price file."
+
+    if ($skuPriceLookup.ContainsKey($skuPartNumber)) {
+        $monthlyPrice = $skuPriceLookup[$skuPartNumber].MonthlyPrice
+        $monthlyWaste = $available * $monthlyPrice
+        $annualWaste = $monthlyWaste * 12
+        $priceEvidence = "Price loaded from configurable SKU price file."
+    }
+
     if ($available -gt 0) {
         $unassignedLicense = [PSCustomObject]@{
-            SkuPartNumber = $sku.skuPartNumber
+            SkuPartNumber = $skuPartNumber
             TotalEnabled  = $totalEnabled
             Assigned      = $assigned
             Available     = $available
-            Evidence      = "$available of $totalEnabled enabled seats are not assigned."
+            MonthlyPrice  = $monthlyPrice
+            MonthlyWaste  = $monthlyWaste
+            AnnualWaste   = $annualWaste
+            Evidence      = "$available of $totalEnabled enabled seats are not assigned. $priceEvidence"
         }
+
         $unassignedLicenses += $unassignedLicense
     }
 }
@@ -498,7 +581,26 @@ foreach ($license in $unassignedLicenses) {
     $totalUnassignedSeats += $license.Available
 }
 
+$totalMonthlyWaste = 0
+$totalAnnualWaste = 0
+
+foreach ($license in $UnassignedLicenses) {
+    if ($null -ne $license.MonthlyWaste) {
+        $totalMonthlyWaste += $license.MonthlyWaste
+    }
+
+    if ($null -ne $license.AnnualWaste) {
+        $totalAnnualWaste += $license.AnnualWaste
+    }
+}
+
+$totalMonthlyWasteText = '$' + $totalMonthlyWaste
+$totalAnnualWasteText = '$' + $totalAnnualWaste
+
+
 Write-Log "$totalUnassignedSeats total unassigned license seats found across $($unassignedLicenses.Count) SKU(s)"
+Write-Log "$totalMonthlyWaste total monthly waste"
+Write-Log "$totalAnnualWaste total annual waste"
 
 #now query the information
 
