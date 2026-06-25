@@ -54,6 +54,7 @@ function LicenseHtmlReport {
     param (
         [array]$DisabledUsers,
         [array]$InactiveUsers,
+        [array]$UnassignedLicenses,
         [string]$ReportPath,
         [hashtable]$SkuLookup,
         [int[]]$InactiveDays
@@ -123,6 +124,35 @@ function LicenseHtmlReport {
 "@
     }
 
+    # UNASSIGNED LICENSE TABLE ROWS
+$unassignedRows = ""
+
+foreach ($license in $UnassignedLicenses) {
+    $unassignedRows += @"
+        <tr>
+            <td>$($license.SkuPartNumber)</td>
+            <td>$($license.TotalEnabled)</td>
+            <td>$($license.Assigned)</td>
+            <td>$($license.Available)</td>
+            <td>$($license.Evidence)</td>
+        </tr>
+"@
+}
+
+if ($UnassignedLicenses.Count -eq 0) {
+    $unassignedRows = @"
+        <tr>
+            <td colspan="5">No unassigned licenses were found.</td>
+        </tr>
+"@
+}
+
+$totalUnassignedSeats = 0
+
+foreach ($license in $UnassignedLicenses) {
+    $totalUnassignedSeats += $license.Available
+}
+
     $html = @"
 <!doctype html>
 <html>
@@ -185,7 +215,7 @@ function LicenseHtmlReport {
     <div class="summary-box">
         <div class="summary">$($DisabledUsers.Count) disabled users with active licenses found.</div>
         <div class="summary">$($InactiveUsers.Count) inactive-user findings across thresholds: $($InactiveDays -join ', ') days.</div>
-   </div>
+<div class="summary">$totalUnassignedSeats unassigned license seats found across $($UnassignedLicenses.Count) SKU(s).</div>   </div>
 
     <h2>Disabled Users With Active Licenses</h2>
 
@@ -231,6 +261,23 @@ $inactiveRows
         Inactive licensed users are enabled licensed users where the last sign-in date is older than $InactiveDays days.
         Users with no sign-in data returned by Microsoft Graph are included for manual review.
     </div>
+
+    <h2>Unassigned Licenses</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Sku Part Number</th>
+                <th>Total Enabled</th>
+                <th>Assigned</th>
+                <th>Available</th>
+                <th>Evidence</th>
+            </tr>
+        </thead>
+        <tbody>
+$unassignedRows
+        </tbody>
+    </table>
 </body>
 </html>
 "@
@@ -425,6 +472,34 @@ foreach ($sku in $subscribedSkus.value) {
     $skuLookup[$sku.skuId] = $sku.skuPartNumber
 }
 
+# UNASSIGNED LICENSES
+$unassignedLicenses = @()
+
+foreach ($sku in $subscribedSkus.value) {
+    $totalEnabled = $sku.prepaidUnits.enabled
+    $assigned = $sku.consumedUnits
+    $available = $totalEnabled - $assigned
+
+    if ($available -gt 0) {
+        $unassignedLicense = [PSCustomObject]@{
+            SkuPartNumber = $sku.skuPartNumber
+            TotalEnabled  = $totalEnabled
+            Assigned      = $assigned
+            Available     = $available
+            Evidence      = "$available of $totalEnabled enabled seats are not assigned."
+        }
+        $unassignedLicenses += $unassignedLicense
+    }
+}
+
+$totalUnassignedSeats = 0
+
+foreach ($license in $unassignedLicenses) {
+    $totalUnassignedSeats += $license.Available
+}
+
+Write-Log "$totalUnassignedSeats total unassigned license seats found across $($unassignedLicenses.Count) SKU(s)"
+
 #now query the information
 
 #empty array to hold the licensed user info
@@ -569,6 +644,7 @@ Write-Log "$($disabledLicensedUsers.Count) disabled users w/ active licenses fou
 LicenseHtmlReport `
     -DisabledUsers $disabledLicensedUsers `
     -InactiveUsers $inactiveLicensedUsers `
+    -UnassignedLicenses $unassignedLicenses `
     -ReportPath $ReportPath `
     -SkuLookup $skuLookup `
     -InactiveDays $InactiveDays

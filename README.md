@@ -63,3 +63,10 @@ ISSUE - usage reports seem to not exist for the sandbox tenant, so going to cont
 5e. update function calls
 5f. default 30 60 90 reoprt - adjust parameter to be an array and take in the report. Adjust the function to not loop days anymore and just for each user look and see if it meets any threshold
 
+6. Available Licenses in Tenant
+6a. Add parameter in LicenseHtmlReport and add table rows after the inactive section
+6b. Add tabel to html export
+6c. build unassigned licesnses table
+6d. Update summary / license calculation
+6e. Update final report call 
+
