@@ -8,6 +8,8 @@ function Get-SubscribedSkuData {
     #grab all the skus data from graph
     $subscribedSkusUrl = "https://graph.microsoft.com/v1.0/subscribedSkus"
 
+    Write-Log "Querying subscribed SKUs"
+
     $subscribedSkus = Invoke-GraphGet `
         -Url $subscribedSkusUrl `
         -Headers $GraphHeaders

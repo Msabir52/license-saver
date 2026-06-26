@@ -3,10 +3,26 @@ function Invoke-LicenseSaver {
         [string]$ConfigPath = ".\Config\config.json",
         [string]$PricePath = ".\Config\sku-prices.json",
         [string]$ReportPath = ".\Output\LicenseReport.html",
+        [string]$LogPath = ".\Output\LicenseSaver.log",
         [int[]]$InactiveDays = @(30, 60, 90)
     )
 
-    Write-Log "Starting script"
+    $script:LicenseSaverLogPath = $LogPath
+
+    $logDirectory = Split-Path -Path $LogPath -Parent
+
+    if ($logDirectory -and -not (Test-Path $logDirectory)) {
+        New-Item -Path $logDirectory -ItemType Directory -Force | Out-Null
+    }
+
+    "Run started: $(Get-Date -Format o)" | Set-Content -Path $LogPath -Encoding UTF8
+
+    Write-Log "Starting License Saver"
+    Write-Log "ConfigPath=$ConfigPath"
+    Write-Log "PricePath=$PricePath"
+    Write-Log "ReportPath=$ReportPath"
+    Write-Log "LogPath=$LogPath"
+    Write-Log "InactiveDays=$($InactiveDays -join ',')"
 
     $config = Get-LicenseSaverConfig -ConfigPath $ConfigPath
 
@@ -65,6 +81,8 @@ function Invoke-LicenseSaver {
 
     $totalMonthlySavingsText = '$' + ('{0:N2}' -f $totalMonthlySavings)
     $totalAnnualSavingsText = '$' + ('{0:N2}' -f $totalAnnualSavings)
+
+    Write-Log "Total projected savings calculated. Monthly=$totalMonthlySavingsText Annual=$totalAnnualSavingsText"
 
     New-LicenseHtmlReport `
         -DisabledUsers $disabledLicensedUsers `

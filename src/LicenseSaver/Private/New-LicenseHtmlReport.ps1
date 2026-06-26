@@ -260,6 +260,7 @@ $unassignedRows
 </html>
 "@
 
+    Write-Log "Writing HTML report to $ReportPath"
     Set-Content -Path $ReportPath -Value $html -Encoding UTF8
 
     Write-Log "HTML report saved to $ReportPath"

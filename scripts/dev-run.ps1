@@ -6,4 +6,5 @@ Invoke-LicenseSaver `
     -ConfigPath .\Config\config.json `
     -PricePath .\Config\sku-prices.json `
     -ReportPath .\Output\LicenseReport.html `
+    -LogPath .\Output\LicenseSaver.log `
     -InactiveDays 30,60,90

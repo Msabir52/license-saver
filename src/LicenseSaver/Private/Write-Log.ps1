@@ -5,6 +5,13 @@ function Write-Log {
         [string]$Level = "INFO"
     )
 
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Write-Host "[$timestamp] [$Level] $Message"
+    $timestamp = Get-Date -Format "o"
+    $levelUpper = $Level.ToUpperInvariant()
+    $line = "$timestamp $levelUpper $Message"
+
+    Write-Host $line
+
+    if ($script:LicenseSaverLogPath) {
+        Add-Content -Path $script:LicenseSaverLogPath -Value $line -Encoding UTF8
+    }
 }

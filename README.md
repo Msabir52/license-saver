@@ -19,6 +19,7 @@ Implemented so far:
 - Identifies unassigned license seats in the tenant.
 - Uses configurable per-SKU pricing from JSON.
 - Calculates projected monthly and annual savings for disabled, inactive, and unassigned-license findings.
+- Writes timestamped structured logs to both the console and a log file.
 - Generates a single HTML report.
 
 Still planned:
@@ -163,8 +164,14 @@ Invoke-LicenseSaver `
     -ConfigPath .\Config\config.json `
     -PricePath .\Config\sku-prices.json `
     -ReportPath .\Output\LicenseReport.html `
+    -LogPath .\Output\LicenseSaver.log `
     -InactiveDays 30,60,90
 ```
+
+The tool writes:
+
+- HTML report output to `ReportPath`.
+- Structured run logs to `LogPath`.
 
 ## Parameters
 
@@ -173,6 +180,7 @@ Invoke-LicenseSaver `
 | `ConfigPath` | `.\Config\config.json` | Path to tenant/app configuration. |
 | `PricePath` | `.\Config\sku-prices.json` | Path to configurable SKU pricing. |
 | `ReportPath` | `.\Output\LicenseReport.html` | Output path for the HTML report. |
+| `LogPath` | `.\Output\LicenseSaver.log` | Output path for structured run logs. |
 | `InactiveDays` | `30,60,90` | Inactivity thresholds used in the report. |
 
 ## Report Sections
@@ -246,7 +254,6 @@ Current limitations:
 
 - Service usage reports are not fully implemented yet.
 - Underutilized license downgrade recommendations are not currently generated.
-- The current log output writes to the console only.
 - Savings estimates depend on the completeness and accuracy of `Config/sku-prices.json`.
 - No Pester tests are included yet.
 - No local cache mode is implemented yet.
@@ -258,7 +265,6 @@ Planned next steps:
 - Add Graph reports ingestion for Exchange, OneDrive, SharePoint, and Teams.
 - Add SKU-to-service mapping and downgrade recommendation logic.
 - Add CSV export.
-- Add structured file logging.
 - Add Pester tests.
 - Add cache support for regenerating reports without re-querying Graph.
 
