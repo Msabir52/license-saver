@@ -8,7 +8,9 @@ function New-LicenseHtmlReport {
         [hashtable]$SkuLookup,
         [int[]]$InactiveDays,
         [string]$TotalMonthlyWasteText,
-        [string]$TotalAnnualWasteText
+        [string]$TotalAnnualWasteText,
+        [string]$TotalMonthlySavingsText,
+        [string]$TotalAnnualSavingsText
     )
 
     Write-Log "Building report"
@@ -18,24 +20,16 @@ function New-LicenseHtmlReport {
 
     foreach ($user in $DisabledUsers) {
 
-        $licenseList = Get-ReadableLicenseList `
-            -AssignedLicenses $user.assignedLicenses `
-            -SkuLookup $SkuLookup
-
-        $lastSignIn = $user.signInActivity.lastSignInDateTime
-
-        if (-not $lastSignIn) {
-            $lastSignIn = "No sign-in data returned"
-        }
-
         $disabledRows += @"
         <tr>
-            <td>$($user.displayName)</td>
-            <td>$($user.userPrincipalName)</td>
-            <td>$licenseList</td>
-            <td>$lastSignIn</td>
-            <td>Account is disabled but still has an assigned license.</td>
-            <td>Review and consider reclaiming license.</td>
+            <td>$($user.DisplayName)</td>
+            <td>$($user.UserPrincipalName)</td>
+            <td>$($user.Licenses)</td>
+            <td>$($user.LastSignIn)</td>
+            <td>$($user.Evidence)</td>
+            <td>$($user.Recommendation)</td>
+            <td>$($user.MonthlySavingsText)</td>
+            <td>$($user.AnnualSavingsText)</td>
         </tr>
 "@
     }
@@ -43,7 +37,7 @@ function New-LicenseHtmlReport {
     if ($DisabledUsers.Count -eq 0) {
         $disabledRows = @"
         <tr>
-            <td colspan="6">No disabled users with active licenses were found.</td>
+            <td colspan="8">No disabled users with active licenses were found.</td>
         </tr>
 "@
     }
@@ -63,6 +57,8 @@ function New-LicenseHtmlReport {
             <td>$($user.DaysInactive)</td>
             <td>$($user.Evidence)</td>
             <td>$($user.Recommendation)</td>
+            <td>$($user.MonthlySavingsText)</td>
+            <td>$($user.AnnualSavingsText)</td>
         </tr>
 "@
     }
@@ -71,7 +67,7 @@ function New-LicenseHtmlReport {
     if ($InactiveUsers.Count -eq 0) {
         $inactiveRows = @"
         <tr>
-        <td colspan="8">No active licensed users inactive for these thresholds were found: $($InactiveDays -join ', ') days.</td>
+        <td colspan="10">No active licensed users inactive for these thresholds were found: $($InactiveDays -join ', ') days.</td>
         </tr>
 "@
     }
@@ -188,6 +184,7 @@ foreach ($license in $UnassignedLicenses) {
         <div class="summary">$($DisabledUsers.Count) disabled users with active licenses found.</div>
         <div class="summary">$($InactiveUsers.Count) inactive-user findings across thresholds: $($InactiveDays -join ', ') days.</div>
         <div class="summary">$totalUnassignedSeats unassigned license seats found across $($UnassignedLicenses.Count) SKU(s).</div>
+        <div class="summary">Total projected savings: $TotalMonthlySavingsText monthly / $TotalAnnualSavingsText annually.</div>
         <div class="summary">Projected unassigned-license waste: $TotalMonthlyWasteText monthly / $TotalAnnualWasteText annually.</div>
     </div>
 
@@ -202,6 +199,8 @@ foreach ($license in $UnassignedLicenses) {
                 <th>Last Sign-In</th>
                 <th>Evidence</th>
                 <th>Recommendation</th>
+                <th>Projected Monthly Savings</th>
+                <th>Projected Annual Savings</th>
             </tr>
         </thead>
         <tbody>
@@ -222,6 +221,8 @@ $disabledRows
                 <th>Days Inactive</th>
                 <th>Evidence</th>
                 <th>Recommendation</th>
+                <th>Projected Monthly Savings</th>
+                <th>Projected Annual Savings</th>
             </tr>
         </thead>
         <tbody>

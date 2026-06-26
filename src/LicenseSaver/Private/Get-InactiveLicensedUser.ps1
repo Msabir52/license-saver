@@ -2,6 +2,7 @@ function Get-InactiveLicensedUser {
     param (
         [array]$LicensedUsers,
         [hashtable]$SkuLookup,
+        [hashtable]$SkuPriceLookup,
         [int[]]$InactiveDays
     )
 
@@ -26,20 +27,27 @@ function Get-InactiveLicensedUser {
 
         $lastSignInRaw = $user.signInActivity.lastSignInDateTime
 
-        $licenseList = Get-ReadableLicenseList `
+        $savings = Get-LicenseSavingsEstimate `
             -AssignedLicenses $user.assignedLicenses `
-            -SkuLookup $SkuLookup
+            -SkuLookup $SkuLookup `
+            -SkuPriceLookup $SkuPriceLookup
 
         if (-not $lastSignInRaw) {
             $inactiveUser = [PSCustomObject]@{
+                FindingType        = "InactiveUser"
                 ThresholdDays     = "Manual Review"
                 DisplayName       = $user.displayName
                 UserPrincipalName = $user.userPrincipalName
-                Licenses          = $licenseList
+                Licenses          = $savings.LicenseList
                 LastSignIn        = "No sign-in data returned"
                 DaysInactive      = "Unknown"
-                Evidence          = "Microsoft Graph did not return a last sign-in date."
+                Evidence          = "Microsoft Graph did not return a last sign-in date. $($savings.PriceEvidence)"
                 Recommendation    = "Review account manually and consider reclaiming license if unused."
+                MonthlySavings    = $savings.MonthlySavings
+                AnnualSavings     = $savings.AnnualSavings
+                MonthlySavingsText = $savings.MonthlySavingsText
+                AnnualSavingsText  = $savings.AnnualSavingsText
+                PriceEvidence      = $savings.PriceEvidence
             }
 
             $inactiveLicensedUsers += $inactiveUser
@@ -60,14 +68,20 @@ function Get-InactiveLicensedUser {
 
         if ($matchedThreshold) {
             $inactiveUser = [PSCustomObject]@{
+                FindingType        = "InactiveUser"
                 ThresholdDays     = $matchedThreshold
                 DisplayName       = $user.displayName
                 UserPrincipalName = $user.userPrincipalName
-                Licenses          = $licenseList
+                Licenses          = $savings.LicenseList
                 LastSignIn        = $lastSignInDate
                 DaysInactive      = $daysInactive
-                Evidence          = "Last sign-in was $daysInactive days ago."
+                Evidence          = "Last sign-in was $daysInactive days ago. $($savings.PriceEvidence)"
                 Recommendation    = "Review account manually and consider reclaiming license if unused."
+                MonthlySavings    = $savings.MonthlySavings
+                AnnualSavings     = $savings.AnnualSavings
+                MonthlySavingsText = $savings.MonthlySavingsText
+                AnnualSavingsText  = $savings.AnnualSavingsText
+                PriceEvidence      = $savings.PriceEvidence
             }
 
             $inactiveLicensedUsers += $inactiveUser

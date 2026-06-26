@@ -36,14 +36,35 @@ function Invoke-LicenseSaver {
 
     $licensedUsers = Get-LicensedUser -GraphHeaders $graphHeaders
 
-    $disabledLicensedUsers = Get-DisabledLicensedUser -LicensedUsers $licensedUsers
+    $disabledLicensedUsers = Get-DisabledLicensedUser `
+        -LicensedUsers $licensedUsers `
+        -SkuLookup $skuLookup `
+        -SkuPriceLookup $skuPriceLookup
 
     $inactiveLicensedUsers = Get-InactiveLicensedUser `
         -LicensedUsers $licensedUsers `
         -SkuLookup $skuLookup `
+        -SkuPriceLookup $skuPriceLookup `
         -InactiveDays $InactiveDays
 
     Write-Log "$($disabledLicensedUsers.Count) disabled users w/ active licenses found"
+
+    $disabledMonthlySavings = ($disabledLicensedUsers | Measure-Object -Property MonthlySavings -Sum).Sum
+    $inactiveMonthlySavings = ($inactiveLicensedUsers | Measure-Object -Property MonthlySavings -Sum).Sum
+
+    if ($null -eq $disabledMonthlySavings) {
+        $disabledMonthlySavings = 0
+    }
+
+    if ($null -eq $inactiveMonthlySavings) {
+        $inactiveMonthlySavings = 0
+    }
+
+    $totalMonthlySavings = [decimal]$disabledMonthlySavings + [decimal]$inactiveMonthlySavings + [decimal]$unassignedLicenseResult.TotalMonthlyWaste
+    $totalAnnualSavings = $totalMonthlySavings * 12
+
+    $totalMonthlySavingsText = '$' + ('{0:N2}' -f $totalMonthlySavings)
+    $totalAnnualSavingsText = '$' + ('{0:N2}' -f $totalAnnualSavings)
 
     New-LicenseHtmlReport `
         -DisabledUsers $disabledLicensedUsers `
@@ -53,5 +74,7 @@ function Invoke-LicenseSaver {
         -SkuLookup $skuLookup `
         -InactiveDays $InactiveDays `
         -TotalMonthlyWasteText $unassignedLicenseResult.TotalMonthlyWasteText `
-        -TotalAnnualWasteText $unassignedLicenseResult.TotalAnnualWasteText
+        -TotalAnnualWasteText $unassignedLicenseResult.TotalAnnualWasteText `
+        -TotalMonthlySavingsText $totalMonthlySavingsText `
+        -TotalAnnualSavingsText $totalAnnualSavingsText
 }

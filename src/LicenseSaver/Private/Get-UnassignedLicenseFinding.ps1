@@ -25,16 +25,31 @@ function Get-UnassignedLicenseFinding {
             $priceEvidence = "Price loaded from configurable SKU price file."
         }
 
+        $monthlySavingsText = "Unknown"
+        $annualSavingsText = "Unknown"
+
+        if ($null -ne $monthlyWaste) {
+            $monthlySavingsText = '$' + ('{0:N2}' -f $monthlyWaste)
+        }
+
+        if ($null -ne $annualWaste) {
+            $annualSavingsText = '$' + ('{0:N2}' -f $annualWaste)
+        }
+
         if ($available -gt 0) {
             $unassignedLicense = [PSCustomObject]@{
-                SkuPartNumber = $skuPartNumber
-                TotalEnabled  = $totalEnabled
-                Assigned      = $assigned
-                Available     = $available
-                MonthlyPrice  = $monthlyPrice
-                MonthlyWaste  = $monthlyWaste
-                AnnualWaste   = $annualWaste
-                Evidence      = "$available of $totalEnabled enabled seats are not assigned. $priceEvidence"
+                SkuPartNumber      = $skuPartNumber
+                TotalEnabled       = $totalEnabled
+                Assigned           = $assigned
+                Available          = $available
+                MonthlyPrice       = $monthlyPrice
+                MonthlyWaste       = $monthlyWaste
+                AnnualWaste        = $annualWaste
+                MonthlySavings     = $monthlyWaste
+                AnnualSavings      = $annualWaste
+                MonthlySavingsText = $monthlySavingsText
+                AnnualSavingsText  = $annualSavingsText
+                Evidence           = "$available of $totalEnabled enabled seats are not assigned. $priceEvidence"
             }
 
             $unassignedLicenses += $unassignedLicense
@@ -60,8 +75,8 @@ function Get-UnassignedLicenseFinding {
         }
     }
 
-    $totalMonthlyWasteText = '$' + $totalMonthlyWaste
-    $totalAnnualWasteText = '$' + $totalAnnualWaste
+    $totalMonthlyWasteText = '$' + ('{0:N2}' -f $totalMonthlyWaste)
+    $totalAnnualWasteText = '$' + ('{0:N2}' -f $totalAnnualWaste)
 
     Write-Log "$totalUnassignedSeats total unassigned license seats found across $($unassignedLicenses.Count) SKU(s)"
     Write-Log "$totalMonthlyWaste total monthly waste"

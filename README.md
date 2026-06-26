@@ -1,78 +1,270 @@
-# license saver
+# License Saver
 
-alrightyy so the goal here is to save on microsoft licenses
+License Saver is a read-only PowerShell module for analyzing Microsoft 365 license usage and identifying license savings opportunities.
 
-Mayer wants me to do this assignment. I know this is something they've already implemented, so there's definitely a right answer haha! In any case, for the uninitiated, the CS team here at Tech-Keys has used a combination of processes to monitor our clients users, and look for licenses being used by inactive users. This PowerShell mega scrip attempts to accomplish that again, but this time its me (and my little buddies in some data center) trying to build it from scratch(ish).
+The tool connects to Microsoft Graph, reviews assigned licenses, account status, sign-in activity, and subscribed SKU availability, then generates an HTML report showing licenses that may be reclaimed or reviewed.
 
-The Goal:
--remove unused licenses assigned to inactive or disabled users
--analyze underutilized licenses assigned to active users who are not using their license to the full potential, and adjust their licenses to reflext what they need
+## Current Capabilities
 
-All to save the client money in the long run :)
+Implemented so far:
 
-The process (high-level):
--Pull data from Microsoft Graph
--Analyze the output
--(Look to) Unlicense inactive users, and make recommendations for underutilized licenses
--Generate a quick neat report of the findings, and how much money was saved over how many licenses
+- Connects to Microsoft Graph using app-only authentication.
+- Reads tenant/app settings from a config file.
+- Reads the client secret from an environment variable.
+- Queries licensed users from Microsoft Graph.
+- Handles Microsoft Graph paging with `@odata.nextLink`.
+- Handles basic Graph throttling responses using `Retry-After`.
+- Identifies disabled users that still have assigned licenses.
+- Identifies active licensed users with no sign-in activity across configurable thresholds.
+- Identifies unassigned license seats in the tenant.
+- Uses configurable per-SKU pricing from JSON.
+- Calculates projected monthly and annual savings for disabled, inactive, and unassigned-license findings.
+- Generates a single HTML report.
 
+Still planned:
 
+- Per-service usage analysis for Exchange, OneDrive, SharePoint, and Teams.
+- Underutilized license downgrade recommendations.
+- CSV output.
+- File-based structured logging.
+- Pester tests for SKU-to-service recommendation logic.
+- Local Graph response cache.
 
-The process (in detail):
--adding as I go through all the requirements and vision board this out~
+## Why This Exists
 
-1. Initial Tenant Setup
-1a. Create a Dev Tenant
-- created test tennant - 1ad2a9eb-7be3-410e-82e2-a3e576f592ed // moiz.sabir@tech-keys.com - 
-- created admin account, moizadmin@rfgd4w.onmicrosoft.com // <saved pwd in tk ms edge pwd mgr>
-- kept same password for all dummy users
+Tech-Keys clients pay for many Microsoft 365 licenses every month. Two common savings opportunities are:
 
-1b. Create an Entra App
-- created an app registration, a6553e25-cf51-4c35-9d2b-ff0dd26f08bd "license saver"
-- directory selected
-- added graph perms in API, user.read.all to get all the user info, auditlog.read.all for sign in activity, organization.read.all to get all the licensing info, and reports.read.all to get the usage info for license downgrade
+1. Licenses assigned to disabled or inactive users.
+2. Expensive licenses assigned to users who only use a small subset of included services.
 
-1c. Authentication Secret for the script
-- key stored in my downloads in a notepad file
-- created env for storing the secret
-- created config.json
+This module is intended to help identify those opportunities consistently and produce a report that can be reviewed before any tenant changes are made.
 
+## Project Structure
 
-2. Get the base functions set for grabbing the data from MS Graph
-2a. formulate the token URL and body 
-2b. ask for a graph token with the above
-2c. query the information
-2d. take the 302 redir and use it to get the CSV of data
-ISSUE - usage reports seem to not exist for the sandbox tenant, so going to continue forward on just the core requirement of disabled licensed accounts.
+```text
+license-saver/
+├── Config/
+│   └── sku-prices.json
+├── Output/
+│   └── LicenseReport.html
+├── scripts/
+│   └── dev-run.ps1
+├── src/
+│   └── LicenseSaver/
+│       ├── LicenseSaver.psd1
+│       ├── LicenseSaver.psm1
+│       ├── Public/
+│       │   └── Invoke-LicenseSaver.ps1
+│       └── Private/
+│           ├── Get-ClientSecret.ps1
+│           ├── Get-DisabledLicensedUser.ps1
+│           ├── Get-GraphToken.ps1
+│           ├── Get-InactiveLicensedUser.ps1
+│           ├── Get-LicenseSavingsEstimate.ps1
+│           ├── Get-LicensedUser.ps1
+│           ├── Get-LicenseSaverConfig.ps1
+│           ├── Get-ReadableLicenseList.ps1
+│           ├── Get-SkuPriceLookup.ps1
+│           ├── Get-SubscribedSkuData.ps1
+│           ├── Get-UnassignedLicenseFinding.ps1
+│           ├── Invoke-GraphGet.ps1
+│           ├── New-LicenseHtmlReport.ps1
+│           └── Write-Log.ps1
+├── licensing.ps1
+└── README.md
+```
 
-3. Licensed Disabled Acounts
-3a. Pull the data from graph of the accounts
+## Microsoft 365 Developer Tenant Setup
 
-4. REPORT GENERATION
-4a. add in param at top to output to .\Output
-4b. helper function
-4c. report made, html export save
-4d. license sku to readable name lookup
-4e. edit report to incorporate readable name
+1. Create a free Microsoft 365 Developer tenant:
+   - Go to `https://developer.microsoft.com/microsoft-365/dev-program`.
+   - Sign in with your Microsoft account.
+   - Create a sandbox tenant.
+   - Use the sample users and licenses provided by the developer tenant.
 
-5. Inactive Users
-5a. Add helper function to map License SKU to name
-5b. add parameter for function so i can pass through any number of days to determine as inactive for testing (then set the 30 60 90 default report)
-5c. Create list for inactive users, along with PS Object with (what chat says) are best practice parts like recommendation etc. for the basic purpose this'll just be to manually review but when usage data comes into play this will be helpful for downgrading licenses.
-5d. Replace / Update report function to have both tables. 
-5e. update function calls
-5f. default 30 60 90 reoprt - adjust parameter to be an array and take in the report. Adjust the function to not loop days anymore and just for each user look and see if it meets any threshold
+2. Register an app in Microsoft Entra ID:
+   - Open the Microsoft Entra admin center.
+   - Go to **App registrations**.
+   - Create a new registration.
+   - Record the tenant ID and client ID.
+   - Create a client secret.
 
-6. Available Licenses in Tenant
-6a. Add parameter in LicenseHtmlReport and add table rows after the inactive section
-6b. Add tabel to html export
-6c. build unassigned licesnses table
-6d. Update summary / license calculation
-6e. Update final report call 
+3. Store the secret securely:
+   - Do not hardcode the secret in the repo.
+   - Store it in an environment variable.
 
-7. Configurable per SKU Pricing / Savings Calculation
-7a. Add sku-prices.json within Config - add parameter PricePath
-7b. Use skuPartNumber to reference the "friendly" name - each SKU has a name, monthly price, billing basis, and notes (auto generated)
-7c. Helper function Get-SkuPriceLookup to check if price file exists, if it does convert the json to a ps hashtable, and then that will allow the lookup
-7d. Match Tenant SKUs, and calculate savings
-7e. Add to Report Data / add to HTML Report
+Example:
+
+```powershell
+[Environment]::SetEnvironmentVariable(
+    "LICENSESAVER_CLIENT_SECRET",
+    "your-client-secret-value",
+    "User"
+)
+```
+
+## Required Microsoft Graph Permissions
+
+The app registration needs application permissions for read-only Graph access.
+
+Current permissions used:
+
+| Permission | Why it is needed |
+|---|---|
+| `User.Read.All` | Read users, account status, and assigned licenses. |
+| `AuditLog.Read.All` | Read `signInActivity` for last sign-in analysis. |
+| `Organization.Read.All` | Read subscribed SKUs and license availability. |
+| `Reports.Read.All` | Planned usage report access for service utilization analysis. |
+
+After adding permissions, grant admin consent.
+
+## Configuration
+
+Create a local config file at:
+
+```text
+Config/config.json
+```
+
+Example:
+
+```json
+{
+  "TenantId": "your-tenant-id",
+  "ClientId": "your-app-client-id",
+  "ClientSecretEnvVar": "LICENSESAVER_CLIENT_SECRET"
+}
+```
+
+`Config/config.json` is intentionally ignored by git.
+
+SKU pricing is configured in:
+
+```text
+Config/sku-prices.json
+```
+
+Pricing is kept outside the code so it can be updated without changing module logic.
+
+## Running The Tool
+
+From the repo root:
+
+```powershell
+.\licensing.ps1
+```
+
+Or call the module command directly:
+
+```powershell
+Import-Module .\src\LicenseSaver\LicenseSaver.psd1 -Force
+
+Invoke-LicenseSaver `
+    -ConfigPath .\Config\config.json `
+    -PricePath .\Config\sku-prices.json `
+    -ReportPath .\Output\LicenseReport.html `
+    -InactiveDays 30,60,90
+```
+
+## Parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `ConfigPath` | `.\Config\config.json` | Path to tenant/app configuration. |
+| `PricePath` | `.\Config\sku-prices.json` | Path to configurable SKU pricing. |
+| `ReportPath` | `.\Output\LicenseReport.html` | Output path for the HTML report. |
+| `InactiveDays` | `30,60,90` | Inactivity thresholds used in the report. |
+
+## Report Sections
+
+The generated HTML report currently includes:
+
+- Executive summary
+- Disabled users with active licenses
+- Inactive licensed users
+- Unassigned licenses
+- Methodology notes
+
+Each finding includes the user, license evidence, recommendation, projected savings, and supporting data where available.
+
+## Methodology
+
+### Disabled Licensed Users
+
+A user is flagged when:
+
+- `accountEnabled` is `false`.
+- `assignedLicenses` contains one or more licenses.
+
+Recommendation: review the account and consider reclaiming the assigned license.
+
+Projected savings are estimated as the sum of configured monthly prices for the assigned licenses on the flagged account.
+
+### Inactive Licensed Users
+
+A user is flagged when:
+
+- The account is enabled.
+- The account has one or more assigned licenses.
+- The last sign-in date is older than one of the configured thresholds.
+
+Users with no returned sign-in activity are included for manual review.
+
+Projected savings are estimated as the sum of configured monthly prices for the assigned licenses on the flagged account.
+
+### Unassigned Licenses
+
+A SKU is flagged when:
+
+```text
+prepaidUnits.enabled - consumedUnits > 0
+```
+
+Projected waste is calculated as:
+
+```text
+available seats * configured monthly SKU price
+```
+
+Annualized savings are calculated as:
+
+```text
+monthly projected waste * 12
+```
+
+## Design Decisions
+
+- The module is read-only and does not modify tenant configuration.
+- Credentials are not stored in the codebase.
+- SKU pricing is configurable because Microsoft pricing changes and clients may have different agreements.
+- The module is split into public and private functions so future Graph collectors and recommendation logic can be added cleanly.
+- The current report is HTML-first because it is easy to review and share.
+
+## Limitations
+
+Current limitations:
+
+- Service usage reports are not fully implemented yet.
+- Underutilized license downgrade recommendations are not currently generated.
+- The current log output writes to the console only.
+- Savings estimates depend on the completeness and accuracy of `Config/sku-prices.json`.
+- No Pester tests are included yet.
+- No local cache mode is implemented yet.
+
+## Next Improvements
+
+Planned next steps:
+
+- Add Graph reports ingestion for Exchange, OneDrive, SharePoint, and Teams.
+- Add SKU-to-service mapping and downgrade recommendation logic.
+- Add CSV export.
+- Add structured file logging.
+- Add Pester tests.
+- Add cache support for regenerating reports without re-querying Graph.
+
+## Security Notes
+
+- No tenant IDs, client IDs, secrets, or passwords should be committed.
+- `Config/config.json` should remain local only.
+- The client secret must be stored in an environment variable or another secure secret store.
+- The app registration should use the minimum read-only Microsoft Graph permissions required.
