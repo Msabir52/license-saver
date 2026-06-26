@@ -59,6 +59,7 @@
     <div class="summary-box">
         <div class="summary">2 disabled users with active licenses found.</div>
         <div class="summary">12 inactive-user findings across thresholds: 30, 60, 90 days.</div>
+        <div class="summary">0 users included in the Exchange usage report.</div>
         <div class="summary">9 unassigned license seats found across 1 SKU(s).</div>
         <div class="summary">Total projected savings: $23.00 monthly / $276.00 annually.</div>
         <div class="summary">Projected unassigned-license waste: $9.00 monthly / $108.00 annually.</div>
@@ -256,11 +257,34 @@
         </tbody>
     </table>
 
+    <h2>Exchange Usage</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>UPN</th>
+                <th>Name</th>
+                <th>Last Activity Date</th>
+                <th>Sent</th>
+                <th>Received</th>
+                <th>Read</th>
+                <th>Assigned Products</th>
+                <th>Report Period</th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td colspan="8">No Exchange usage data was returned.</td>
+        </tr>
+        </tbody>
+    </table>
+
     <div class="note">
         <strong>Methodology:</strong>
         Disabled licensed users are users where accountEnabled is false and assignedLicenses has one or more entries.
         Inactive licensed users are enabled licensed users where the last sign-in date is older than 30 60 90 days.
         Users with no sign-in data returned by Microsoft Graph are included for manual review.
+        Exchange usage comes from the Microsoft Graph email activity user detail report for the previous 30 days.
     </div>
 
     <h2>Unassigned Licenses</h2>

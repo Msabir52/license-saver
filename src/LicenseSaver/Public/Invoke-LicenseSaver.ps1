@@ -54,6 +54,17 @@ function Invoke-LicenseSaver {
 
     $licensedUsers = Get-LicensedUser -GraphHeaders $graphHeaders
 
+    try {
+        $exchangeUsage = @(Get-ExchangeUsageData `
+            -GraphHeaders $graphHeaders `
+            -Period "D30")
+    }
+    catch {
+        $message = "Exchange usage report unavailable. Continuing without Exchange usage data. $($_.Exception.Message)"
+        Write-Log $message "WARN"
+        $exchangeUsage = @()
+    }
+
     $disabledLicensedUsers = Get-DisabledLicensedUser `
         -LicensedUsers $licensedUsers `
         -SkuLookup $skuLookup `
@@ -90,6 +101,7 @@ function Invoke-LicenseSaver {
         -DisabledUsers $disabledLicensedUsers `
         -InactiveUsers $inactiveLicensedUsers `
         -UnassignedLicenses $unassignedLicenses `
+        -ExchangeUsage $exchangeUsage `
         -ReportPath $ReportPath `
         -SkuLookup $skuLookup `
         -InactiveDays $InactiveDays `

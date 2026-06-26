@@ -21,11 +21,14 @@ Implemented so far:
 - Calculates projected monthly and annual savings for disabled, inactive, and unassigned-license findings.
 - Writes timestamped structured logs to both the console and a log file.
 - Exports disabled, inactive, and unassigned-license findings as CSV files.
+- Collects per-user Exchange email activity for the previous 30 days.
+- Logs a warning and continues core license analysis when Exchange usage data is unavailable.
 - Generates a single HTML report.
 
 Still planned:
 
-- Per-service usage analysis for Exchange, OneDrive, SharePoint, and Teams.
+- Per-service usage analysis for OneDrive, SharePoint, and Teams.
+- Exchange-based license downgrade recommendations.
 - Underutilized license downgrade recommendations.
 - Local Graph response cache.
 
@@ -58,6 +61,8 @@ license-saver/
 │           ├── Export-LicenseSaverCsv.ps1
 │           ├── Get-ClientSecret.ps1
 │           ├── Get-DisabledLicensedUser.ps1
+│           ├── Get-ExchangeUsageData.ps1
+│           ├── Get-GraphReportCsv.ps1
 │           ├── Get-GraphToken.ps1
 │           ├── Get-InactiveLicensedUser.ps1
 │           ├── Get-LicenseSavingsEstimate.ps1
@@ -114,9 +119,21 @@ Current permissions used:
 | `User.Read.All` | Read users, account status, and assigned licenses. |
 | `AuditLog.Read.All` | Read `signInActivity` for last sign-in analysis. |
 | `Organization.Read.All` | Read subscribed SKUs and license availability. |
-| `Reports.Read.All` | Planned usage report access for service utilization analysis. |
+| `Reports.Read.All` | Read per-user Microsoft 365 service usage reports, including Exchange email activity. |
 
 After adding permissions, grant admin consent.
+
+### Show Usernames in Usage Reports
+
+Microsoft 365 conceals usernames and user principal names in usage reports by default. License Saver needs visible user principal names to associate service usage with licensed users.
+
+In the Microsoft 365 admin center, go to:
+
+```text
+Settings > Org Settings > Services > Reports
+```
+
+Clear **Display concealed user, group, and site names in all reports**, then save the setting. License Saver remains read-only and does not change this tenant setting.
 
 ## Configuration
 
@@ -265,6 +282,7 @@ monthly projected waste * 12
 Current limitations:
 
 - Service usage reports are not fully implemented yet.
+- Exchange activity is displayed in the report but is not yet used for downgrade recommendations.
 - Underutilized license downgrade recommendations are not currently generated.
 - Savings estimates depend on the completeness and accuracy of `Config/sku-prices.json`.
 - No Pester tests are included yet.
@@ -274,7 +292,8 @@ Current limitations:
 
 Planned next steps:
 
-- Add Graph reports ingestion for Exchange, OneDrive, SharePoint, and Teams.
+- Add Graph reports ingestion for OneDrive, SharePoint, and Teams.
+- Use Exchange activity in SKU downgrade recommendations.
 - Add SKU-to-service mapping and downgrade recommendation logic.
 - Add Pester tests.
 - Add cache support for regenerating reports without re-querying Graph.

@@ -1,29 +1,32 @@
-Run started: 2026-06-26T18:34:59.7025696-04:00
-2026-06-26T18:34:59.7121237-04:00 INFO Starting License Saver
-2026-06-26T18:34:59.7293434-04:00 INFO ConfigPath=.\Config\config.json
-2026-06-26T18:34:59.7536205-04:00 INFO PricePath=.\Config\sku-prices.json
-2026-06-26T18:34:59.7654621-04:00 INFO ReportPath=.\Output\LicenseReport.html
-2026-06-26T18:34:59.7774183-04:00 INFO LogPath=.\Output\LicenseSaver.log
-2026-06-26T18:34:59.7893295-04:00 INFO CsvOutputDirectory=.\Output
-2026-06-26T18:34:59.8022023-04:00 INFO InactiveDays=30,60,90
-2026-06-26T18:34:59.8264191-04:00 INFO Config loaded
-2026-06-26T18:34:59.8701004-04:00 INFO 13 SKU prices loaded from .\Config\sku-prices.json
-2026-06-26T18:34:59.8867571-04:00 INFO client secret found in env var
-2026-06-26T18:34:59.9002952-04:00 INFO basic config and secret checks passed
-2026-06-26T18:35:00.1621647-04:00 INFO Access token received
-2026-06-26T18:35:00.1649731-04:00 INFO Graph Header ready
-2026-06-26T18:35:00.1827467-04:00 INFO Querying subscribed SKUs
-2026-06-26T18:35:00.4472452-04:00 INFO 9 total unassigned license seats found across 1 SKU(s)
-2026-06-26T18:35:00.4509541-04:00 INFO 9 total monthly waste
-2026-06-26T18:35:00.4760600-04:00 INFO 108 total annual waste <woah>
-2026-06-26T18:35:00.5065626-04:00 INFO Querying users
-2026-06-26T18:35:02.0198685-04:00 INFO Finished querying
-2026-06-26T18:35:02.0558370-04:00 INFO 16 Licensed users found in tenant 
-2026-06-26T18:35:02.1426229-04:00 INFO Checking inactive users for thresholds: 30, 60, 90 days
-2026-06-26T18:35:02.1797361-04:00 INFO 12 inactive licensed users found across thresholds: 30, 60, 90 days
-2026-06-26T18:35:02.1882867-04:00 INFO 2 disabled users w/ active licenses found
-2026-06-26T18:35:02.2188051-04:00 INFO Total projected savings calculated. Monthly=$23.00 Annual=$276.00
-2026-06-26T18:35:02.2522311-04:00 INFO Building report
-2026-06-26T18:35:02.3016712-04:00 INFO Writing HTML report to .\Output\LicenseReport.html
-2026-06-26T18:35:02.3209963-04:00 INFO HTML report saved to .\Output\LicenseReport.html
-2026-06-26T18:35:02.3617647-04:00 INFO CSV export complete. DisabledUsersCsv=.\Output\DisabledUsers.csv InactiveUsersCsv=.\Output\InactiveUsers.csv UnassignedLicensesCsv=.\Output\UnassignedLicenses.csv
+Run started: 2026-06-26T19:16:43.4321724-04:00
+2026-06-26T19:16:43.4340913-04:00 INFO Starting License Saver
+2026-06-26T19:16:43.4481859-04:00 INFO ConfigPath=.\Config\config.json
+2026-06-26T19:16:43.4604916-04:00 INFO PricePath=.\Config\sku-prices.json
+2026-06-26T19:16:43.4728483-04:00 INFO ReportPath=.\Output\LicenseReport.html
+2026-06-26T19:16:43.4861405-04:00 INFO LogPath=.\Output\LicenseSaver.log
+2026-06-26T19:16:43.4985005-04:00 INFO CsvOutputDirectory=.\Output
+2026-06-26T19:16:43.5107955-04:00 INFO InactiveDays=30,60,90
+2026-06-26T19:16:43.5249519-04:00 INFO Config loaded
+2026-06-26T19:16:43.5413145-04:00 INFO 13 SKU prices loaded from .\Config\sku-prices.json
+2026-06-26T19:16:43.5539186-04:00 INFO client secret found in env var
+2026-06-26T19:16:43.5654899-04:00 INFO basic config and secret checks passed
+2026-06-26T19:16:43.8017884-04:00 INFO Access token received
+2026-06-26T19:16:43.8139882-04:00 INFO Graph Header ready
+2026-06-26T19:16:43.8267751-04:00 INFO Querying subscribed SKUs
+2026-06-26T19:16:44.0460745-04:00 INFO 9 total unassigned license seats found across 1 SKU(s)
+2026-06-26T19:16:44.0586254-04:00 INFO 9 total monthly waste
+2026-06-26T19:16:44.0694231-04:00 INFO 108 total annual waste <woah>
+2026-06-26T19:16:44.0815945-04:00 INFO Querying users
+2026-06-26T19:16:44.6720160-04:00 INFO Finished querying
+2026-06-26T19:16:44.6877489-04:00 INFO 16 Licensed users found in tenant 
+2026-06-26T19:16:44.7023897-04:00 INFO Querying Exchange usage for period D30
+2026-06-26T19:16:55.1149034-04:00 ERROR Failed to download Microsoft Graph report CSV. Response status code does not indicate success: 404 (Not Found).
+2026-06-26T19:16:55.1283119-04:00 WARN Exchange usage report unavailable. Continuing without Exchange usage data. Failed to download Microsoft Graph report CSV. Response status code does not indicate success: 404 (Not Found).
+2026-06-26T19:16:55.1643935-04:00 INFO Checking inactive users for thresholds: 30, 60, 90 days
+2026-06-26T19:16:55.1856739-04:00 INFO 12 inactive licensed users found across thresholds: 30, 60, 90 days
+2026-06-26T19:16:55.2026279-04:00 INFO 2 disabled users w/ active licenses found
+2026-06-26T19:16:55.2238398-04:00 INFO Total projected savings calculated. Monthly=$23.00 Annual=$276.00
+2026-06-26T19:16:55.2498041-04:00 INFO Building report
+2026-06-26T19:16:55.2707256-04:00 INFO Writing HTML report to .\Output\LicenseReport.html
+2026-06-26T19:16:55.2843703-04:00 INFO HTML report saved to .\Output\LicenseReport.html
+2026-06-26T19:16:55.3164756-04:00 INFO CSV export complete. DisabledUsersCsv=.\Output\DisabledUsers.csv InactiveUsersCsv=.\Output\InactiveUsers.csv UnassignedLicensesCsv=.\Output\UnassignedLicenses.csv

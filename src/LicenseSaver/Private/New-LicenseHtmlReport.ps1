@@ -4,6 +4,7 @@ function New-LicenseHtmlReport {
         [array]$DisabledUsers,
         [array]$InactiveUsers,
         [array]$UnassignedLicenses,
+        [array]$ExchangeUsage,
         [string]$ReportPath,
         [hashtable]$SkuLookup,
         [int[]]$InactiveDays,
@@ -68,6 +69,32 @@ function New-LicenseHtmlReport {
         $inactiveRows = @"
         <tr>
         <td colspan="10">No active licensed users inactive for these thresholds were found: $($InactiveDays -join ', ') days.</td>
+        </tr>
+"@
+    }
+
+    # EXCHANGE USAGE TABLE ROWS
+    $exchangeRows = ""
+
+    foreach ($user in $ExchangeUsage) {
+        $exchangeRows += @"
+        <tr>
+            <td>$($user.'User Principal Name')</td>
+            <td>$($user.'Display Name')</td>
+            <td>$($user.'Last Activity Date')</td>
+            <td>$($user.'Send Count')</td>
+            <td>$($user.'Receive Count')</td>
+            <td>$($user.'Read Count')</td>
+            <td>$($user.'Assigned Products')</td>
+            <td>$($user.'Report Period') days</td>
+        </tr>
+"@
+    }
+
+    if ($ExchangeUsage.Count -eq 0) {
+        $exchangeRows = @"
+        <tr>
+            <td colspan="8">No Exchange usage data was returned.</td>
         </tr>
 "@
     }
@@ -183,6 +210,7 @@ foreach ($license in $UnassignedLicenses) {
     <div class="summary-box">
         <div class="summary">$($DisabledUsers.Count) disabled users with active licenses found.</div>
         <div class="summary">$($InactiveUsers.Count) inactive-user findings across thresholds: $($InactiveDays -join ', ') days.</div>
+        <div class="summary">$($ExchangeUsage.Count) users included in the Exchange usage report.</div>
         <div class="summary">$totalUnassignedSeats unassigned license seats found across $($UnassignedLicenses.Count) SKU(s).</div>
         <div class="summary">Total projected savings: $TotalMonthlySavingsText monthly / $TotalAnnualSavingsText annually.</div>
         <div class="summary">Projected unassigned-license waste: $TotalMonthlyWasteText monthly / $TotalAnnualWasteText annually.</div>
@@ -230,11 +258,32 @@ $inactiveRows
         </tbody>
     </table>
 
+    <h2>Exchange Usage</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>UPN</th>
+                <th>Name</th>
+                <th>Last Activity Date</th>
+                <th>Sent</th>
+                <th>Received</th>
+                <th>Read</th>
+                <th>Assigned Products</th>
+                <th>Report Period</th>
+            </tr>
+        </thead>
+        <tbody>
+$exchangeRows
+        </tbody>
+    </table>
+
     <div class="note">
         <strong>Methodology:</strong>
         Disabled licensed users are users where accountEnabled is false and assignedLicenses has one or more entries.
         Inactive licensed users are enabled licensed users where the last sign-in date is older than $InactiveDays days.
         Users with no sign-in data returned by Microsoft Graph are included for manual review.
+        Exchange usage comes from the Microsoft Graph email activity user detail report for the previous 30 days.
     </div>
 
     <h2>Unassigned Licenses</h2>
