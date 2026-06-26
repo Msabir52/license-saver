@@ -26,8 +26,9 @@ function Get-LicensedUser {
             $usersResponse = Invoke-GraphGet -Url $usersUrl -Headers $GraphHeaders
         }
         catch {
-            Write-Log "Failed to query" "ERROR"
-            exit
+            $message = "Failed to query licensed users. $($_.Exception.Message)"
+            Write-Log $message "ERROR"
+            throw $message
         }
 
         #go through each user returned on this page

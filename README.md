@@ -27,9 +27,6 @@ Still planned:
 
 - Per-service usage analysis for Exchange, OneDrive, SharePoint, and Teams.
 - Underutilized license downgrade recommendations.
-- CSV output.
-- File-based structured logging.
-- Pester tests for SKU-to-service recommendation logic.
 - Local Graph response cache.
 
 ## Why This Exists

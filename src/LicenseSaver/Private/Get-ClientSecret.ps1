@@ -7,8 +7,9 @@ function Get-ClientSecret {
     $clientSecret = [Environment]::GetEnvironmentVariable($SecretEnvVarName, "Process")
 
     if (-not $clientSecret) {
-        Write-Log "Client secret was not found in env var: $SecretEnvVarName" "ERROR"
-        exit
+        $message = "Client secret was not found in env var: $SecretEnvVarName"
+        Write-Log $message "ERROR"
+        throw $message
     }
 
     Write-Log "client secret found in env var"

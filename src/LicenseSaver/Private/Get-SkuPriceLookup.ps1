@@ -16,9 +16,9 @@ function Get-SkuPriceLookup {
         $priceConfig = Get-Content $PricePath -Raw | ConvertFrom-Json
     }
     catch {
-        Write-Log "Could not read price file: $PricePath" "ERROR"
-        Write-Log "Check that the JSON is valid." "ERROR"
-        exit
+        $message = "Could not read price file: $PricePath. Check that the JSON is valid."
+        Write-Log $message "ERROR"
+        throw $message
     }
 
     foreach ($property in $priceConfig.PSObject.Properties) {

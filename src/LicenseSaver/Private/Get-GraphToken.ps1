@@ -30,8 +30,9 @@ function Get-GraphToken {
     }
     #failure print
     catch {
-        Write-Log "auth failed. Check data and app permissions." "ERROR"
-        exit
+        $message = "Authentication failed. Check TenantId, ClientId, client secret, and admin consent for Graph application permissions."
+        Write-Log $message "ERROR"
+        throw $message
     }
 
     return $accessToken

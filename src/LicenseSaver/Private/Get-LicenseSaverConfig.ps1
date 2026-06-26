@@ -5,8 +5,9 @@ function Get-LicenseSaverConfig {
 
     #check that the config file exists before trying to read it
     if (-not (Test-Path $ConfigPath)) {
-        Write-Log "Config file not found: $ConfigPath" "ERROR"
-        exit
+        $message = "Config file not found: $ConfigPath"
+        Write-Log $message "ERROR"
+        throw $message
     }
 
     #read the config file and convert the JSON into a ps obj, pull the values and store them as such here
@@ -17,18 +18,21 @@ function Get-LicenseSaverConfig {
 
     #edge cases should any bit of info be missing from the config.json grab
     if (-not $tenantId) {
-        Write-Log "TenantId is missing" "ERROR"
-        exit
+        $message = "TenantId is missing from config file: $ConfigPath"
+        Write-Log $message "ERROR"
+        throw $message
     }
 
     if (-not $clientId) {
-        Write-Log "ClientId is missing" "ERROR"
-        exit
+        $message = "ClientId is missing from config file: $ConfigPath"
+        Write-Log $message "ERROR"
+        throw $message
     }
 
     if (-not $secretEnvVarName) {
-        Write-Log "ClientSecretEnvVar is missing" "ERROR"
-        exit
+        $message = "ClientSecretEnvVar is missing from config file: $ConfigPath"
+        Write-Log $message "ERROR"
+        throw $message
     }
 
     Write-Log "Config loaded"
