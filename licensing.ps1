@@ -5,6 +5,7 @@ param (
     [string]$PricePath = ".\Config\sku-prices.json",
     [string]$ReportPath = ".\Output\LicenseReport.html",
     [string]$LogPath = ".\Output\LicenseSaver.log",
+    [string]$CsvOutputDirectory = ".\Output",
     [int[]]$InactiveDays = @(30, 60, 90)
 )
 
@@ -15,4 +16,5 @@ Invoke-LicenseSaver `
     -PricePath $PricePath `
     -ReportPath $ReportPath `
     -LogPath $LogPath `
+    -CsvOutputDirectory $CsvOutputDirectory `
     -InactiveDays $InactiveDays

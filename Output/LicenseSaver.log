@@ -1,0 +1,29 @@
+Run started: 2026-06-26T15:01:31.9542718-04:00
+2026-06-26T15:01:31.9561474-04:00 INFO Starting License Saver
+2026-06-26T15:01:31.9698345-04:00 INFO ConfigPath=.\Config\config.json
+2026-06-26T15:01:31.9818570-04:00 INFO PricePath=.\Config\sku-prices.json
+2026-06-26T15:01:31.9918828-04:00 INFO ReportPath=.\Output\LicenseReport.html
+2026-06-26T15:01:32.0019622-04:00 INFO LogPath=.\Output\LicenseSaver.log
+2026-06-26T15:01:32.0137428-04:00 INFO CsvOutputDirectory=.\Output
+2026-06-26T15:01:32.0242591-04:00 INFO InactiveDays=30,60,90
+2026-06-26T15:01:32.0377356-04:00 INFO Config loaded
+2026-06-26T15:01:32.0589708-04:00 INFO 13 SKU prices loaded from .\Config\sku-prices.json
+2026-06-26T15:01:32.0735919-04:00 INFO client secret found in env var
+2026-06-26T15:01:32.0899588-04:00 INFO basic config and secret checks passed
+2026-06-26T15:01:32.3131158-04:00 INFO Access token received
+2026-06-26T15:01:32.3152822-04:00 INFO Graph Header ready
+2026-06-26T15:01:32.3281260-04:00 INFO Querying subscribed SKUs
+2026-06-26T15:01:32.5535200-04:00 INFO 9 total unassigned license seats found across 1 SKU(s)
+2026-06-26T15:01:32.5551996-04:00 INFO 9 total monthly waste
+2026-06-26T15:01:32.5666084-04:00 INFO 108 total annual waste <woah>
+2026-06-26T15:01:32.5783810-04:00 INFO Querying users
+2026-06-26T15:01:32.9918970-04:00 INFO Finished querying
+2026-06-26T15:01:32.9935642-04:00 INFO 16 Licensed users found in tenant 
+2026-06-26T15:01:33.0107100-04:00 INFO Checking inactive users for thresholds: 30, 60, 90 days
+2026-06-26T15:01:33.0323038-04:00 INFO 12 inactive licensed users found across thresholds: 30, 60, 90 days
+2026-06-26T15:01:33.0505548-04:00 INFO 2 disabled users w/ active licenses found
+2026-06-26T15:01:33.0610238-04:00 INFO Total projected savings calculated. Monthly=$23.00 Annual=$276.00
+2026-06-26T15:01:33.0700254-04:00 INFO Building report
+2026-06-26T15:01:33.0793948-04:00 INFO Writing HTML report to .\Output\LicenseReport.html
+2026-06-26T15:01:33.0944247-04:00 INFO HTML report saved to .\Output\LicenseReport.html
+2026-06-26T15:01:33.1397529-04:00 INFO CSV export complete. DisabledUsersCsv=.\Output\DisabledUsers.csv InactiveUsersCsv=.\Output\InactiveUsers.csv UnassignedLicensesCsv=.\Output\UnassignedLicenses.csv

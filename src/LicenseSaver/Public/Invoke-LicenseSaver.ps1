@@ -4,6 +4,7 @@ function Invoke-LicenseSaver {
         [string]$PricePath = ".\Config\sku-prices.json",
         [string]$ReportPath = ".\Output\LicenseReport.html",
         [string]$LogPath = ".\Output\LicenseSaver.log",
+        [string]$CsvOutputDirectory = ".\Output",
         [int[]]$InactiveDays = @(30, 60, 90)
     )
 
@@ -22,6 +23,7 @@ function Invoke-LicenseSaver {
     Write-Log "PricePath=$PricePath"
     Write-Log "ReportPath=$ReportPath"
     Write-Log "LogPath=$LogPath"
+    Write-Log "CsvOutputDirectory=$CsvOutputDirectory"
     Write-Log "InactiveDays=$($InactiveDays -join ',')"
 
     $config = Get-LicenseSaverConfig -ConfigPath $ConfigPath
@@ -95,4 +97,10 @@ function Invoke-LicenseSaver {
         -TotalAnnualWasteText $unassignedLicenseResult.TotalAnnualWasteText `
         -TotalMonthlySavingsText $totalMonthlySavingsText `
         -TotalAnnualSavingsText $totalAnnualSavingsText
+
+    Export-LicenseSaverCsv `
+        -DisabledUsers $disabledLicensedUsers `
+        -InactiveUsers $inactiveLicensedUsers `
+        -UnassignedLicenses $unassignedLicenses `
+        -CsvOutputDirectory $CsvOutputDirectory
 }

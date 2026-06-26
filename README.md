@@ -20,6 +20,7 @@ Implemented so far:
 - Uses configurable per-SKU pricing from JSON.
 - Calculates projected monthly and annual savings for disabled, inactive, and unassigned-license findings.
 - Writes timestamped structured logs to both the console and a log file.
+- Exports disabled, inactive, and unassigned-license findings as CSV files.
 - Generates a single HTML report.
 
 Still planned:
@@ -57,6 +58,7 @@ license-saver/
 │       ├── Public/
 │       │   └── Invoke-LicenseSaver.ps1
 │       └── Private/
+│           ├── Export-LicenseSaverCsv.ps1
 │           ├── Get-ClientSecret.ps1
 │           ├── Get-DisabledLicensedUser.ps1
 │           ├── Get-GraphToken.ps1
@@ -165,6 +167,7 @@ Invoke-LicenseSaver `
     -PricePath .\Config\sku-prices.json `
     -ReportPath .\Output\LicenseReport.html `
     -LogPath .\Output\LicenseSaver.log `
+    -CsvOutputDirectory .\Output `
     -InactiveDays 30,60,90
 ```
 
@@ -172,6 +175,7 @@ The tool writes:
 
 - HTML report output to `ReportPath`.
 - Structured run logs to `LogPath`.
+- CSV exports to `CsvOutputDirectory`.
 
 ## Parameters
 
@@ -181,7 +185,18 @@ The tool writes:
 | `PricePath` | `.\Config\sku-prices.json` | Path to configurable SKU pricing. |
 | `ReportPath` | `.\Output\LicenseReport.html` | Output path for the HTML report. |
 | `LogPath` | `.\Output\LicenseSaver.log` | Output path for structured run logs. |
+| `CsvOutputDirectory` | `.\Output` | Directory for CSV exports. |
 | `InactiveDays` | `30,60,90` | Inactivity thresholds used in the report. |
+
+## CSV Output
+
+The tool exports three CSV files:
+
+| File | Contents |
+|---|---|
+| `DisabledUsers.csv` | Disabled users that still have assigned licenses. |
+| `InactiveUsers.csv` | Enabled licensed users inactive across configured thresholds. |
+| `UnassignedLicenses.csv` | Available seats by subscribed SKU. |
 
 ## Report Sections
 
@@ -264,7 +279,6 @@ Planned next steps:
 
 - Add Graph reports ingestion for Exchange, OneDrive, SharePoint, and Teams.
 - Add SKU-to-service mapping and downgrade recommendation logic.
-- Add CSV export.
 - Add Pester tests.
 - Add cache support for regenerating reports without re-querying Graph.
 
